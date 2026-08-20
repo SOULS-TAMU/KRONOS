@@ -22,19 +22,26 @@ verified (a genuine local minimum), or explicitly uncertified.
 ## Install
 
 ```bash
-pip install git+https://github.com/toufik3078/test_kronos.git
+pip install https://github.com/toufik3078/test_kronos/archive/refs/heads/main.zip
 ```
 
-That is the whole installation — one command, nothing to clone or build. It
-pulls `numpy`, `scipy`, `sympy` and `casadi`. CasADi is included because the
-solver routes to it above ~20 variables, where it builds derivatives one to two
-orders of magnitude faster than SymPy (n=1000: 0.2 s versus 35 s).
+That is the whole installation — one command, no `git` needed, nothing to clone
+or download by hand. It pulls `numpy`, `scipy`, `sympy` and `casadi`. CasADi is
+included because the solver routes to it above ~20 variables, where it builds
+derivatives one to two orders of magnitude faster than SymPy (n=1000: 0.2 s
+versus 35 s).
+
+If you do have `git`, this works too:
+
+```bash
+pip install git+https://github.com/toufik3078/test_kronos.git
+```
 
 With figures, or with JAX as a third backend:
 
 ```bash
-pip install "kronos[plot] @ git+https://github.com/toufik3078/test_kronos.git"
-pip install "kronos[all]  @ git+https://github.com/toufik3078/test_kronos.git"
+pip install "kronos[plot] @ https://github.com/toufik3078/test_kronos/archive/refs/heads/main.zip"
+pip install "kronos[all]  @ https://github.com/toufik3078/test_kronos/archive/refs/heads/main.zip"
 ```
 
 To work on the code instead of just using it:
