@@ -1,9 +1,9 @@
 """Stage 0: Adam warm-up.
 
 First-order descent on the merit function ``f(theta) + rho * ||h(theta)||^2``,
-run before the Newton KKT solver commits to a basin.  Momentum plus a
-per-coordinate adaptive step traverses saddles and shallow valleys that Newton
-would otherwise be pulled into.  A direct port of ``adam_warmup.m``.
+applied before the Newton iteration. Momentum with a per-coordinate adaptive
+step size traverses saddles and shallow valleys, which moves the starting point
+into a more favourable basin.
 """
 
 from __future__ import annotations

@@ -1,26 +1,32 @@
 """Minimum-norm least-squares kernels.
 
-This module holds the numerical core of KRONOS.  The Newton update
+The Newton update solves
 
     dz = argmin ||dz||_2  subject to  dz in argmin ||J dz - r||_2
 
-is *the* contribution of the method, so it is implemented here once, exactly,
-and every solver path in the package routes through :func:`lsqminnorm`.
+and every solver path routes through this module. Two implementations are
+provided, selected by ``Options.step_method``:
 
-Why a complete orthogonal decomposition (COD) and not ``pinv``
--------------------------------------------------------------
-The reference MATLAB implementation uses ``lsqminnorm``, which is COD-based
-(two QR factorisations with column pivoting), *not* SVD/Moore-Penrose.  On the
-well-conditioned systems the two agree to round-off, but on the rank-deficient
-and badly-scaled KKT matrices this solver actually encounters they do not.
-Measured against MATLAB R2024b on 400 generated test matrices, COD reproduces
-``lsqminnorm`` exactly (rel. err < 1e-12) in 347 cases versus 285 for
-``numpy.linalg.pinv``; on badly scaled rank-deficient systems COD is closer to
-MATLAB by six orders of magnitude.  Substituting ``pinv`` therefore silently
-changes the algorithm precisely where it is supposed to matter.
+``"pinv"``  the Moore-Penrose pseudoinverse computed from the SVD, in
+            :mod:`kronos.linalg_svd`. This is the default.
+``"cod"``   a complete orthogonal decomposition, two QR factorisations with
+            column pivoting, implemented here as :func:`lsqminnorm`.
 
-The SVD/Moore-Penrose form is still available via ``method="pinv"`` for
-ablation studies.
+Both return a minimum-norm least-squares solution. In exact arithmetic they
+coincide; in floating point on rank-deficient or badly scaled systems the
+solutions differ slightly, though measurements across the bundled problem set
+show no systematic advantage to either. ``"cod"`` matches MATLAB's
+``lsqminnorm`` and is provided for comparison against results produced with it.
+
+Rank tolerance
+--------------
+A minimum-norm solution requires a numerical rank, and the cutoff is not
+uniquely determined. :func:`_rank_tolerance` provides the two conventions used
+by MATLAB, which differ by roughly a factor of forty and are selected by
+``Options.rank_rule``.
+
+The remaining methods, ``"lstsq"``, ``"tikhonov"`` and ``"backslash"``, do not
+compute a minimum-norm solution and exist only for comparison.
 """
 
 from __future__ import annotations
@@ -45,24 +51,22 @@ STEP_METHODS = ("pinv", "cod", "lstsq", "tikhonov", "backslash")
 
 def _rank_tolerance(shape: tuple[int, int], R: np.ndarray,
                     rule: str = "dense") -> float:
-    """Rank tolerance for the COD, matching MATLAB's two ``lsqminnorm`` paths.
+    """Rank tolerance for the complete orthogonal decomposition.
 
-    MATLAB dispatches on storage, and the two paths do *not* agree:
+    Two conventions are available, corresponding to MATLAB's dense and sparse
+    ``lsqminnorm`` paths, which do not agree:
 
-    - ``"dense"``  -- dense COD, ``max(m, n) * eps * |R[0,0]|``.  With column
-      pivoting ``|R[0,0]|`` is the largest column 2-norm of ``A``, so this
-      costs nothing extra.  Validated against MATLAB on 400 test matrices:
-      identical rank decision on 397, and reproduces MATLAB's dense
-      ``lsqminnorm`` on 239 of 250 further cases.
-    - ``"sparse"`` -- ``lsqminnorm(sparse(A), b)`` goes through SuiteSparseQR,
-      whose default is ``20 * (m + n) * eps * max_j ||A(:,j)||_2`` -- roughly
-      40x looser, so it truncates more aggressively.  Measured on 250 cases:
-      this rule reproduces the sparse path on 214, versus 205 for the dense
-      rule; on 45 of those 250 the two MATLAB paths give different answers.
+    - ``"dense"``: ``max(m, n) * eps * |R[0,0]|``. Under column pivoting
+      ``|R[0,0]|`` is the largest column 2-norm of ``A``, so this costs nothing
+      to compute.
+    - ``"sparse"``: ``20 * (m + n) * eps * max_j ||A(:,j)||_2``, the
+      SuiteSparseQR default, roughly forty times looser and therefore more
+      aggressive in truncating small singular directions.
 
-    The reference implementation builds a dense KKT matrix in its symbolic
-    backend and a *sparse* one in its CasADi backend, so which rule applies
-    depends on the problem size.  See ``Options.rank_rule``.
+    On 250 generated test matrices the two conventions produced different
+    solutions in 45 cases, so the choice is not cosmetic. ``Options.rank_rule``
+    selects between them, defaulting to the dense rule below
+    ``backend_switch_n`` variables and the sparse rule at or above it.
     """
     if R.size == 0:
         return 0.0
@@ -81,9 +85,8 @@ def lsqminnorm(
 ) -> np.ndarray:
     """Minimum-norm least-squares solution of ``A x ~= b``.
 
-    Reproduces MATLAB's ``lsqminnorm(A, b)`` via a complete orthogonal
-    decomposition.  Among all ``x`` minimising ``||A x - b||_2`` this returns
-    the one of smallest ``||x||_2``.
+    Computed by a complete orthogonal decomposition. Among all ``x``
+    minimising ``||A x - b||_2`` this returns the one of smallest ``||x||_2``.
 
     Parameters
     ----------
@@ -115,10 +118,9 @@ def lsqminnorm(
         X = np.zeros((n, B.shape[1]))
         return X.ravel() if vector_rhs else X
 
-    # MATLAB propagates non-finite entries rather than raising, and the calling
-    # iteration relies on that: a NaN step fails the Armijo test, the step is
-    # rejected, the multipliers are damped and the run continues.  LAPACK via
-    # SciPy would raise instead, so match MATLAB explicitly.
+    # Non-finite entries are propagated rather than raising. The iteration
+    # relies on this: a NaN step fails the Armijo test, is rejected, the
+    # multipliers are damped, and the run continues.
     if not (np.all(np.isfinite(A)) and np.all(np.isfinite(B))):
         X = np.full((n, B.shape[1]), np.nan)
         return X.ravel() if vector_rhs else X
@@ -165,11 +167,11 @@ def min_norm_solve(
     rule: str = "dense",
     svd_tol_rule: str = "matlab",
 ) -> np.ndarray:
-    """Dispatch the linear step, with ablation alternatives.
+    """Dispatch the linear step.
 
-    ``"cod"`` is the KRONOS step and the default.  The others exist so the
-    contribution can be ablated against them, mirroring ``opts.ablation_step``
-    in the reference MATLAB implementation.
+    ``"pinv"`` is the default. ``"cod"`` computes the same minimum-norm
+    least-squares solution by a different factorisation. The remainder do not
+    compute a minimum-norm solution and are provided for comparison.
 
     - ``"pinv"``      : ``J^dagger r`` from the SVD (default)
     - ``"cod"``       : complete orthogonal decomposition (= MATLAB lsqminnorm)
@@ -213,11 +215,11 @@ def min_norm_solve(
 
 
 def null_space(A: np.ndarray, tol: Optional[float] = None) -> np.ndarray:
-    """Orthonormal basis for the null space of ``A``, matching MATLAB ``null``.
+    """Orthonormal basis for the null space of ``A``.
 
-    MATLAB uses the SVD with ``tol = max(size(A)) * eps(max(s))``.  Used by the
-    second-order (SOSC) classification, where the reduced Hessian is formed on
-    the null space of the active constraint Jacobian.
+    Computed from the SVD with ``tol = max(m, n) * eps(sigma_max)``. Used by the
+    second-order classification, where the reduced Hessian is formed on the null
+    space of the active constraint Jacobian.
     """
     A = np.atleast_2d(np.asarray(A, dtype=np.float64))
     if A.size == 0:

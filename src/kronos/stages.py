@@ -1,15 +1,13 @@
-"""Stages 0-2: Adam warm-up, pre-feasibility, main solve.
+"""Stages 0 to 2: warm-up, pre-feasibility and the main solve.
 
-Port of ``solve_nlp_v3.m``.  ``adam_mode`` selects how the K multistart columns
-are treated:
+``adam_mode`` determines how the K multistart columns are processed:
 
-``"A"``  Adam every column; pre-feasibility on column 1 only; one main solve
-        that receives the whole (n, K) matrix.
-``"B"``  Adam column 1 only; the inner solver then scatters K fresh starts
-        around it, so K-1 of them never see Adam.  Legacy behaviour.
-``"C"``  Stages 0 -> 1 -> 2 independently per column: Adam, pre-feasibility and
-        a single-start solve for each of the K columns.  Most thorough, most
-        expensive, and what the benchmark scripts use.
+``"A"``  Warm-up applied to every column, pre-feasibility to the first only,
+         followed by a single solve receiving the whole (n, K) matrix.
+``"B"``  Warm-up applied to the first column only; the inner solver then
+         scatters K fresh starts around it.
+``"C"``  Stages 0 to 2 applied independently to each column. The most thorough
+         setting and the default.
 """
 
 from __future__ import annotations
@@ -70,11 +68,11 @@ def solve_stages(
         X0 = X0[:, :1]
     elif opts.multi_start and X0.shape[1] > opts.ms_num_starts:
         # An explicit start matrix wider than the requested run count is
-        # truncated, matching the reference implementation.
+        # truncated.
         X0 = X0[:, : opts.ms_num_starts]
     elif opts.multi_start and 1 < X0.shape[1] < opts.ms_num_starts:
-        # ...and one that is too narrow is topped up by scattering around its
-        # first column, so ms_num_starts always means what it says.
+        # One that is too narrow is topped up by scattering around its first
+        # column, so ms_num_starts is always honoured.
         extra = scatter_starts(X0[:, 0], lb, ub,
                                opts.ms_num_starts - X0.shape[1] + 1,
                                opts.ms_scale, rng, opts.ms_x0)
@@ -173,8 +171,7 @@ def solve_stages(
                        else f"NOT converged ({last.iterations} steps)")
                 print(f"  Run {c + 1:3d} | Obj: {last.fval:14.6e} | {tag}")
 
-        # Mirror the reference's incumbent rule: only finite, converged
-        # objectives can win.  NaN never does -- MATLAB's `isfinite` guard.
+        # Only finite objectives from converged runs are eligible.
         fvals = np.array([r.fval for r in runs])
         conv = np.array([r.converged for r in runs], dtype=bool)
         eligible = conv & np.isfinite(fvals)

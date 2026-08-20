@@ -1,28 +1,35 @@
 """The KRONOS KKT iteration.
 
-A line-by-line port of ``run_one_start`` / ``solve_nlp`` from the reference
-MATLAB implementation.  Where the MATLAB code and the published algorithm box
-disagree, **the code wins** -- the published results were produced by the code.
-Those places are marked ``PARITY:`` below:
+Implements the Newton iteration on the full KKT residual, with a projected
+backtracking line search, feasibility restoration, stagnation perturbations,
+multiplier-sign enforcement and the second-order classification.
 
-PARITY 1  An internal dummy variable ``xs`` is appended with ``(xs - 1)**2``
-          added to the objective and the row ``xs - 1 = 0`` added to ``H``.
-          It is zero at the solution but enlarges the KKT matrix by one row and
-          column, which changes the minimum-norm step.  Controlled by
-          ``Options.use_dummy_variable`` (default True).
+Implementation notes
+--------------------
+Four details of the iteration are worth stating explicitly, as they affect the
+numerical trajectory and are not evident from the update formulas alone.
 
-PARITY 2  After feasibility restoration moves ``p``, the Newton step reuses the
-          residual ``r_k`` and Jacobian ``J_k`` evaluated *before* restoration.
-          The algorithm box says they are reconstructed; neither MATLAB backend
-          does so.
+1. An internal variable ``xs`` is appended, contributing ``(xs - 1)**2`` to the
+   objective and the row ``xs - 1 = 0`` to the constraints. It vanishes at the
+   solution but enlarges the KKT matrix by one row and column, which changes
+   the minimum-norm step. Controlled by ``Options.use_dummy_variable``.
 
-PARITY 3  The Armijo test is ``Phi_try <= Phi0 * (1 - c1*alpha)``, i.e. a
-          *relative* decrease, not the absolute ``Phi0 - c1*alpha*||r||^2`` of
-          the algorithm box.
+2. Feasibility restoration moves the iterate, but the Newton step that follows
+   reuses the residual and Jacobian evaluated before restoration.
 
-PARITY 4  The incumbent update at the foot of the loop pairs the objective
-          value from the *start* of the iteration with the iterate from the
-          *end* of it.
+3. The line search applies a relative Armijo condition,
+   ``Phi_try <= Phi0 * (1 - c1*alpha)``.
+
+4. The incumbent update at the end of each iteration pairs the objective value
+   from the start of the iteration with the iterate from its end.
+
+MATLAB semantics
+----------------
+Several NumPy operations differ from their MATLAB counterparts in ways that
+matter at singular points, and the MATLAB behaviour is reproduced here:
+``max`` and ``min`` ignore NaN rather than propagating it, and the two-argument
+form used for projection returns the finite operand, so a NaN iterate is
+projected onto the bound rather than remaining NaN.
 """
 
 from __future__ import annotations
@@ -41,11 +48,10 @@ __all__ = ["RunResult", "SolveResult", "run_one_start", "solve_multistart"]
 _XT = 1.0
 
 
-# MATLAB's max/min omit NaN; NumPy's propagate it.  The distinction is not
-# cosmetic here: at a point where some gradient entries are NaN (0/0 at a
-# non-differentiable origin, say) MATLAB's max(abs(r)) reports the largest
-# *finite* residual, so the run can converge.  NumPy would report NaN and the
-# run could never terminate.  Reproduce MATLAB.
+# NaN-omitting max and min. At a point where some gradient entries are NaN,
+# for instance 0/0 at a non-differentiable origin, the largest finite residual
+# is the meaningful quantity and the run can still converge. Propagating the
+# NaN instead would prevent the run from ever terminating.
 def _mmax(x) -> float:
     x = np.asarray(x, dtype=float)
     if x.size == 0:
@@ -82,9 +88,9 @@ class RunResult:
     n_promoted: int = 0
     sosc_pass: bool = False
     sosc_measured: bool = False
-    """Whether the second-order test actually ran.  The Fischer-Burmeister
-    fallback does not form a reduced Hessian, so its runs leave this False --
-    'not measured' is not the same as 'failed'."""
+    """Whether the second-order test was performed. The Fischer-Burmeister
+    formulation does not form a reduced Hessian, so its runs leave this False.
+    An untested run is distinct from one that failed the test."""
     lam_min_red: float = np.nan
     lam_user: np.ndarray = None          # type: ignore[assignment]
     elapsed: float = 0.0
@@ -127,12 +133,11 @@ class SolveResult:
 
     @property
     def n_conv(self) -> int:
-        """Runs that converged **and** are KKT-certified.
+        """Runs that converged and are KKT certified.
 
-        A run whose KKT residual reaches zero but whose inequality multipliers
-        come out with the wrong sign is a stationary point of the reformulated
-        problem, not a solution of yours.  Counting it as "converged" would
-        overstate the result, so ``n_conv`` requires certification.  The looser
+        A run whose residual reaches zero but whose inequality multipliers have
+        the wrong sign is stationary for the reformulated problem rather than a
+        KKT point of the original one, so it is not counted here. The looser
         count is ``n_residual_conv``.
         """
         return int(self.all_kkt.sum())
@@ -241,8 +246,8 @@ class SolveResult:
 class _Assembler:
     """Builds the KKT residual and Jacobian around a backend.
 
-    The dummy variable's contribution is constant, so it is written in
-    directly rather than differentiated (identical values, far cheaper).
+    The internal variable's contribution is constant, so it is written in
+    directly rather than differentiated.
     """
 
     def __init__(self, backend, n: int, m: int, use_dummy: bool, f_scale: float = 1.0):
@@ -316,14 +321,12 @@ class _Assembler:
 
 
 def _clip_matlab(x: np.ndarray, lo, hi) -> np.ndarray:
-    """``min(max(x, lo), hi)`` with MATLAB's NaN semantics.
+    """``min(max(x, lo), hi)`` with NaN mapped to the lower bound.
 
-    MATLAB's two-argument ``max``/``min`` return the non-NaN operand, so
-    ``min(max(NaN, lo), hi)`` is ``lo`` -- projection *sanitises* NaN to the
-    lower bound and the run continues from a finite point.  ``np.clip`` would
-    propagate the NaN and strand the run forever.  Problems whose starting
-    point is itself NaN (hong_done's x0 is ``zeros ./ sum(zeros)``) depend on
-    this.
+    The two-argument form returns the finite operand, so a NaN entry is
+    projected onto ``lo`` and the run continues from a finite point. Plain
+    clipping would propagate the NaN and leave the run unable to progress.
+    Problems whose starting point is itself NaN depend on this behaviour.
     """
     x = np.where(np.isnan(x), lo, x)
     return np.clip(x, lo, hi)
@@ -376,8 +379,7 @@ def run_one_start(
 
     def step(A, rhs):
         """The minimum-norm solve, used for both the Newton step and the
-        feasibility-restoration step -- the two places the algorithm takes a
-        pseudoinverse."""
+        feasibility-restoration step."""
         return min_norm_solve(A, rhs, method=opts.step_method,
                               tikhonov_mu=opts.tikhonov_mu, rule=rank_rule,
                               svd_tol_rule=opts.svd_tol_rule)
@@ -484,8 +486,8 @@ def run_one_start(
                 Hb = J[:nP, :nP]
                 Hb = 0.5 * (Hb + Hb.T)
                 Ac = J[nP:, :nP]
-                # MATLAB's null/eig return NaN on a non-finite input rather
-                # than raising; a NaN reduced Hessian simply fails SOSC.
+                # A non-finite reduced Hessian fails the second-order test
+                # rather than raising.
                 if not np.all(np.isfinite(Ac)):
                     res.sosc_pass = False
                     res.lam_min_red = np.nan
@@ -520,7 +522,8 @@ def run_one_start(
             stag_count = 0
 
         # ---------------- feasibility restoration ----------------
-        # PARITY 2: R and J are deliberately NOT rebuilt afterwards.
+        # The residual and Jacobian are deliberately not rebuilt afterwards;
+        # see the implementation notes in the module docstring.
         if max_h > opts.feas_tol and not opts.disable_restoration:
             h_i, Jh_i = h, Jh_full
             for _ in range(opts.feas_iters):
@@ -552,7 +555,7 @@ def run_one_start(
                 Phi_try = 0.5 * float(R_try @ R_try) + signed_penalty(lam_try)
             if not np.isfinite(Phi_try):
                 Phi_try = np.inf
-            # PARITY 3: relative Armijo condition, as in the MATLAB code.
+            # Relative Armijo condition.
             if Phi_try <= Phi0 * (1.0 - opts.bt_c1 * alpha):
                 p, lam = p_try, lam_try
                 if opts.project_ineq_sign and has_ineq:
@@ -567,7 +570,7 @@ def run_one_start(
         if not accepted:
             lam = 0.8 * lam
 
-        # PARITY 4: old objective, new iterate.
+        # Objective from the start of the iteration, iterate from its end.
         if max_h < opts.tol_h and curr_sse < sse_best:
             sse_best = curr_sse
             p_best = p.copy()
@@ -596,12 +599,12 @@ def scatter_starts(
     rng: MatlabRandom,
     ms_x0: Optional[np.ndarray] = None,
 ) -> np.ndarray:
-    """Generate the multistart scatter exactly as the reference does.
+    """Generate the multistart scatter.
 
-    Variables whose bound is a mere numerical clamp (``|bound| >= 1e5``) are
+    Variables whose bound is only a numerical clamp (``|bound| >= 1e5``) are
     scattered in a box of half-width ``5 * ms_scale`` around the centre; the
-    rest are scattered across their real bounds.  The user's ``x0`` is kept as
-    the first start.
+    rest are scattered across their bounds. The supplied ``x0`` is retained as
+    the first starting point.
     """
     n = x0.size
     center = np.asarray(ms_x0, float).ravel() if ms_x0 is not None else x0.copy()
@@ -690,7 +693,7 @@ def solve_multistart(
     # ---- global best: converged only, min fval, ties broken by iterations
     fvals = np.array([r.fval for r in runs])
     conv = np.array([r.converged for r in runs], dtype=bool)
-    # Only finite objectives from converged runs are eligible, as in MATLAB.
+    # Only finite objectives from converged runs are eligible.
     search = np.where(conv & np.isfinite(fvals), fvals, np.inf)
     best_f = float(np.min(search)) if search.size else np.inf
 

@@ -1,36 +1,27 @@
-"""The algorithm-box step: SVD with the Moore-Penrose pseudoinverse.
+"""Minimum-norm least-squares by the Moore-Penrose pseudoinverse.
 
-The published algorithm states the Newton update and the feasibility
-restoration step as
+Computes the Newton and feasibility-restoration steps as
 
-    dz    = -J_k^dagger r_k
-    dP    = -alpha_feas * J_H^dagger H_k
+    dz    = -J^dagger r
+    dP    = -alpha_feas * J_H^dagger H
 
-with ``^dagger`` the Moore-Penrose pseudoinverse, computed from the SVD.  The
-reference MATLAB implementation instead calls ``lsqminnorm``, which is a
-*complete orthogonal decomposition* (see :mod:`kronos.linalg`).  Both return a
-minimum-norm least-squares solution in exact arithmetic; in floating point on
-rank-deficient, badly-scaled KKT matrices they do not agree.
+with ``^dagger`` the Moore-Penrose pseudoinverse obtained from the SVD. This is
+the default step, selected by ``step_method="pinv"``. The complete orthogonal
+decomposition in :mod:`kronos.linalg` computes the same quantity by a different
+factorisation.
 
-This module implements the algorithm box *literally*, so the two can be
-compared head to head.  It is deliberately kept separate from
-:mod:`kronos.linalg` -- nothing here is used unless you ask for it via
-``Options.step_method``.
+Rank tolerance
+--------------
+The pseudoinverse is not defined without a numerical rank, and the choice of
+cutoff has a large effect on ill-conditioned systems. Three conventions are
+available through ``Options.svd_tol_rule``:
 
-Tolerance
----------
-"Moore-Penrose pseudoinverse" does not by itself fix a numerical rank, and the
-choice matters enormously.  Three rules are provided:
-
-``"matlab"``   ``tol = max(m, n) * eps * sigma_max``  -- MATLAB's ``pinv``
-               default, and the closest thing to a canonical reading of the
-               algorithm box.  This is the default here.
-``"numpy"``    ``tol = rcond * sigma_max`` with ``rcond = 1e-15`` -- NumPy's
-               ``pinv`` default.
-``"exact"``    ``tol = 0`` -- the literal mathematical definition, inverting
-               every nonzero singular value.  Included for completeness; it is
-               numerically hopeless on a rank-deficient KKT matrix and is the
-               reason a tolerance exists at all.
+``"matlab"``   ``tol = max(m, n) * eps * sigma_max``, the default, matching
+               MATLAB's ``pinv``.
+``"numpy"``    ``tol = 1e-15 * sigma_max``, matching NumPy's ``pinv``.
+``"exact"``    ``tol = 0``, inverting every nonzero singular value. This is the
+               literal definition and is numerically unusable on a
+               rank-deficient system; it is included for completeness.
 """
 
 from __future__ import annotations
@@ -88,10 +79,10 @@ def pinv(A: np.ndarray, tol: Optional[float] = None,
 def minnorm_svd(A: np.ndarray, b: np.ndarray, tol: Optional[float] = None,
                 rule: Literal["matlab", "numpy", "exact"] = "matlab",
                 return_rank: bool = False):
-    """``A^dagger b`` -- the algorithm box's step, computed from the SVD.
+    """``A^dagger b``, the minimum-norm least-squares solution via the SVD.
 
     Equivalent to ``pinv(A) @ b`` but formed without materialising the
-    pseudoinverse, which is both faster and slightly more accurate.
+    pseudoinverse, which is faster and slightly more accurate.
 
     Parameters
     ----------

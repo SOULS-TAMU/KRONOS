@@ -1,10 +1,12 @@
 """Solver options.
 
-The defaults are the configuration the bundled problems were validated with:
-Adam warm-up on, ``adam_mode="C"`` (the full pipeline run independently per
-starting point), and the multiplier-sign check enforced.  These are not just
-more reliable than a bare Newton solve -- they are usually *faster*, because a
-warm start converges in far fewer iterations than one that thrashes.
+The defaults correspond to the configuration used to validate the bundled
+problems: Adam warm-up enabled, ``adam_mode="C"`` (the full pipeline applied
+independently to each starting point), and the multiplier-sign check enforced.
+This configuration is both more reliable and generally faster than a plain
+Newton solve, since a warm start requires substantially fewer iterations.
+
+``Options.describe()`` lists every setting with its default and purpose.
 """
 
 from __future__ import annotations
@@ -90,8 +92,8 @@ class Options:
     # -- Python-package additions ----------------------------------------
     backend: Literal["auto", "sympy", "casadi", "jax", "callable"] = "auto"
     backend_switch_n: int = 20
-    """``nTheta >= backend_switch_n`` routes to the AD backend, matching the
-    reference implementation's symbolic/CasADi split at n = 20."""
+    """Problems with at least this many variables are routed to the
+    algorithmic-differentiation backend."""
 
     step_method: Literal["pinv", "cod", "lstsq", "tikhonov", "backslash"] = "pinv"
     """Minimum-norm least-squares step, used for the Newton direction and for
@@ -114,11 +116,9 @@ class Options:
     tikhonov_mu: float = 1e-8
     disable_restoration: bool = False
     use_dummy_variable: bool = True
-    """Keep the reference implementation's internal dummy variable ``xs`` with
-    ``(xs - 1)**2`` added to the objective and ``xs - 1`` added to ``h``.  It
-    contributes nothing at the solution but adds a row and column to the KKT
-    matrix, which changes the minimum-norm step.  On by default so results
-    reproduce the published numbers."""
+    """Include the internal variable ``xs``, contributing ``(xs - 1)**2`` to
+    the objective and ``xs - 1`` to ``h``. It vanishes at the solution but adds
+    a row and column to the KKT matrix, which changes the minimum-norm step."""
 
     def copy(self, **changes: Any) -> "Options":
         return replace(self, **changes)
@@ -192,7 +192,7 @@ _GROUPS: list[tuple[str, list[tuple[str, str]]]] = [
         ("svd_tol_rule", "singular-value cutoff rule for step_method='pinv'"),
         ("rank_rule", "rank tolerance: 'auto', 'dense' or 'sparse'"),
         ("tikhonov_mu", "regularisation weight when step_method='tikhonov'"),
-        ("use_dummy_variable", "keep the reference implementation's internal variable"),
+        ("use_dummy_variable", "include the internal variable in the KKT system"),
     ]),
     ("Backend", [
         ("backend", "'auto', 'sympy', 'casadi' or 'jax'"),

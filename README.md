@@ -4,9 +4,14 @@ KKT-certified nonlinear programming.
 
 KRONOS solves
 
-```
-min  f(x)     s.t.   h(x) = 0,   g(x) <= 0,   xL <= x <= xU
-```
+$$
+\begin{aligned}
+\min_{x} \quad & f(x) \\
+\textrm{s.t.} \quad & h(x) = 0 \\
+& g(x) \le 0 \\
+& x^{L} \le x \le x^{U}
+\end{aligned}
+$$
 
 by forming the full KKT system and driving its residual to zero with Newton's
 method. The Newton step is the minimum-norm least-squares solution of the KKT

@@ -1,23 +1,22 @@
-"""MATLAB-compatible random number generation.
+"""Mersenne Twister generator matching MATLAB's ``rand`` and ``randn``.
 
-Reproducing the reference results run-for-run requires reproducing the random
-starting points, because which basin each multistart run falls into is decided
-entirely by the scatter.  MATLAB's ``rand`` with the default ``twister``
-generator turns out to agree bit-for-bit with the Mersenne Twister stream used
-here, so ``rng(seed); rand(n, K)`` is reproducible exactly.
+Multistart results depend on the starting points, so reproducing a run requires
+reproducing the scatter. ``rand`` here is bit-identical to MATLAB's ``rand``
+under the default ``twister`` generator, so a given seed produces the same set
+of starting points.
 
-``randn`` is a different matter: MATLAB uses a 256-level ziggurat, not the
-polar method NumPy's legacy generator uses.  The fast path -- taken for ~99% of
-draws -- was reverse-engineered against MATLAB R2024b as
+``randn`` uses a 256-level ziggurat rather than the polar method of NumPy's
+legacy generator. Its fast path, taken for approximately 99% of draws, is
 
     j = 255 - (w2 >> 24)          # w2 = second 32-bit word of the draw
     u = 2 * res53(w1, w2) - 1
     z = u * X[j]                  # accepted when |u| < X[j+1] / X[j]
 
-so one ``randn`` consumes exactly the same two words as one ``rand``.  ``randn``
-is only used for stagnation and sign-rejection kicks, which fire rarely; after
-a draw that lands in the wedge/tail rejection path the stream can diverge from
-MATLAB, and that is documented rather than hidden.
+so one normal draw consumes the same two words as one uniform draw. Normal
+draws are used only for the perturbations applied on stagnation and on
+multiplier-sign rejection. After a draw that enters the wedge or tail rejection
+path the stream may diverge from MATLAB's, so those perturbation sequences are
+statistically equivalent rather than identical.
 """
 
 from __future__ import annotations

@@ -33,9 +33,9 @@ def get_backend(problem, name: str = "auto", switch_n: int = 20, **kwargs):
     if name == "auto":
         name = "casadi" if problem.n >= switch_n else "sympy"
         if name == "casadi" and "casadi" not in available_backends():
-            # Falling back silently would be a nasty surprise: SymPy builds the
-            # Hessian element-wise and is ~2 orders of magnitude slower here
-            # (n=1000: 0.2s with CasADi, 35s without).
+            # SymPy builds the Hessian element-wise and is roughly two orders
+            # of magnitude slower at this size (n=1000: 0.2 s against 35 s), so
+            # the fallback is reported rather than applied silently.
             import warnings
             warnings.warn(
                 f"{problem.name!r} has {problem.n} variables, which routes to the "

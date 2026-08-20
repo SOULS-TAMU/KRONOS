@@ -1,14 +1,15 @@
-"""Per-seed A -> FB cascade.
+"""Per-start cascade between the two formulations.
 
-Stage 2 (squared slacks, "A") runs first on every seed.  Only the seeds where
-it fails -- either not converged, or converged to a dual-infeasible multiplier
--- are retried with the Fischer-Burmeister formulation.  Cost is therefore
-"A alone, plus FB on the few percent that need it".
+The squared-slack formulation is applied first to every starting point. Only
+those that fail, either by not converging or by converging to a dual-infeasible
+multiplier, are retried with the Fischer-Burmeister formulation. The total cost
+is therefore that of the primary solve plus the fallback on the small fraction
+of starts that require it.
 
-The winner per seed is chosen by ``3 * kkt_certified + converged``, ties broken
-by the smaller objective; and the reported solution is the best objective among
-*certified* seeds, falling back to merely converged ones only if none is
-certified.
+For each start the better of the two results is kept, ranked by
+``3 * kkt_certified + converged`` with ties broken by the smaller objective.
+The reported solution is the best objective among certified starts, falling
+back to converged starts only if none is certified.
 """
 
 from __future__ import annotations

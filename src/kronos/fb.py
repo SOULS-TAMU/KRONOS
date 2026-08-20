@@ -1,21 +1,21 @@
-"""Fischer-Burmeister fallback solver.
+"""Fischer-Burmeister formulation.
 
 When the squared-slack formulation converges to a point whose inequality
-multiplier has the wrong sign -- a KKT-stationary point of the reformulation
-that is *not* KKT for the original problem -- the slacks are eliminated and the
-complementarity conditions are imposed directly through a smoothed
-Fischer-Burmeister function
+multiplier has the wrong sign, the point is stationary for the reformulated
+problem but is not a KKT point of the original one. This module eliminates the
+slack variables and imposes the complementarity conditions directly through a
+smoothed Fischer-Burmeister function
 
     phi(mu, b) = mu + b - sqrt(mu**2 + b**2 + eps**2),    b = -sigma * g(x)
 
-whose zero is equivalent to ``mu >= 0, b >= 0, mu*b = 0``.  Dual feasibility is
-then structural rather than checked after the fact.
+whose zero is equivalent to ``mu >= 0``, ``b >= 0`` and ``mu * b = 0``. Dual
+feasibility is therefore structural rather than verified after the fact.
 
-The state is ``z = [xs, theta_user, lam, mu]`` and the residual
+The state is ``z = [xs, theta, lam, mu]`` and the residual
 
     R = [ dL/dxs ; dL/dtheta ; h_dummy ; h_eq ; phi ]
 
-is driven to zero by the same minimum-norm Newton step used everywhere else.
+is driven to zero with the same minimum-norm Newton step used elsewhere.
 """
 
 from __future__ import annotations

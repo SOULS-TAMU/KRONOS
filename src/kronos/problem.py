@@ -71,9 +71,8 @@ class Problem:
         Wide numerical safety clamps, not the modelled bounds.  Real bounds
         live in ``h`` as squared-slack rows.
     x0 : ndarray, shape (n,) or (n, K)
-        Starting point.  A 2-D array supplies K explicit multistart columns and
-        suppresses the random scatter, matching the reference behaviour when
-        ``size(x0, 2) > 1``.
+        Starting point. A 2-D array supplies K explicit multistart columns and
+        suppresses the random scatter.
     slack_rows : list of SlackRow
     fstar : float, optional
         Known global optimum, enabling the global-hit metric.
@@ -175,9 +174,8 @@ class Problem:
         inequality_sense : ``"<="`` / ``">="``, or one per inequality
         lb, ub : modelled variable bounds
         bounds_as_slacks : bool
-            Convert finite ``lb``/``ub`` entries into squared-slack rows, the
-            way the reference implementation does.  When False the bounds are
-            kept as numerical clamps only.
+            Convert finite ``lb``/``ub`` entries into squared-slack rows.
+            When False the bounds are kept as numerical clamps only.
 
         Examples
         --------
@@ -289,12 +287,12 @@ class Problem:
 
     # ------------------------------------------------------------------
     def detect_slack_rows(self) -> list[SlackRow]:
-        """Recover squared-slack structure from ``h`` symbolically.
+        """Recover the squared-slack structure of ``h`` symbolically.
 
-        Used for problems imported in already-reformulated form (the MATLAB
-        benchmark library), where the row/slack correspondence is implicit.
-        A variable ``s`` is a squared slack for row ``i`` when ``s`` does not
-        appear in ``f``, appears in no row but ``i``, and ``dh_i/ds = +/-2 s``.
+        Used for problems supplied in already-reformulated form, where the
+        correspondence between rows and slack variables is implicit. A variable
+        ``s`` is a squared slack for row ``i`` when it does not appear in ``f``,
+        appears in no row other than ``i``, and ``dh_i/ds = +/-2 s``.
         """
         syms = self.symbols
         f_free = self.f.free_symbols

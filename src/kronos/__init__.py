@@ -1,13 +1,13 @@
-"""KRONOS -- KKT-certified nonlinear programming by minimum-norm Newton steps.
+"""KRONOS: KKT-certified nonlinear programming.
 
-The solver drives the full KKT system to zero with a Newton iteration whose
-step is the *minimum-norm least-squares* solution of the KKT linear system.
-Inequalities and bounds enter as squared slacks, so the whole problem is a
-square-ish nonlinear system; the minimum-norm step is what keeps that system
-solvable when it is rank deficient, which is the usual case at a solution.
+The solver forms the full KKT system and drives its residual to zero with
+Newton's method. The Newton step is the minimum-norm least-squares solution of
+the KKT linear system, which keeps the iteration well defined when that system
+is rank deficient. Inequalities and variable bounds are converted to equalities
+using squared slack variables.
 
-Quick start
------------
+Example
+-------
 >>> from kronos import Problem, solve
 >>> p = Problem.build("rosen", ["x1", "x2"],
 ...                   objective="100*(x2 - x1**2)**2 + (1 - x1)**2",
