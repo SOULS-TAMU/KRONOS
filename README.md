@@ -21,7 +21,7 @@ squared slack variables.
 Each returned point is classified as first-order KKT certified, certified with
 the second-order sufficient conditions verified, or uncertified.
 
-The method is described in Ahmed and Hasan (2026); see [Citation](#citation).
+The method is described in KRONOS: An algorithm for solving ill-conditioned nonlinear programs; see [Citation](#citation).
 
 ## Install
 
