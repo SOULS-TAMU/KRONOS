@@ -74,7 +74,6 @@ print(r.summary())
 ```
 
 Define a problem by supplying the objective, the constraints and the bounds.
-Slack variables are introduced internally and need not be provided:
 
 ```python
 from kronos import Problem, solve
