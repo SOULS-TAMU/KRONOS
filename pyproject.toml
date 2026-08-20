@@ -31,6 +31,7 @@ dependencies = [
 [project.urls]
 Homepage = "https://github.com/toufik3078/test_kronos"
 Repository = "https://github.com/toufik3078/test_kronos"
+Paper = "https://doi.org/10.1016/j.compchemeng.2026.109839"
 
 [project.optional-dependencies]
 jax = ["jax>=0.4", "jaxlib>=0.4"]

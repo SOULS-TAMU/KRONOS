@@ -1,6 +1,6 @@
 # KRONOS
 
-KKT-certified nonlinear programming.
+An algorithm for solving ill-conditioned nonlinear programs.
 
 KRONOS solves
 
@@ -21,8 +21,7 @@ squared slack variables.
 Each returned point is classified as first-order KKT certified, certified with
 the second-order sufficient conditions verified, or uncertified.
 
-The method is described in
-[Ahmed and Hasan, *Computers & Chemical Engineering*](https://www.sciencedirect.com/science/article/pii/S0098135426002905).
+The method is described in Ahmed and Hasan (2026); see [Citation](#citation).
 
 ## Install
 
@@ -317,18 +316,31 @@ OMP_NUM_THREADS=1 python my_script.py
 
 ## Citation
 
-If you use KRONOS in published work, please cite:
+Ahmed, M G T. and Hasan, M. M. F. (2026) 'KRONOS: An algorithm for solving
+ill-conditioned nonlinear programs', *Computers & Chemical Engineering*, 215,
+109839. doi: 10.1016/j.compchemeng.2026.109839.
 
-> M G Toufik Ahmed and M. M. Faruque Hasan.
-> *Computers & Chemical Engineering*.
-> https://www.sciencedirect.com/science/article/pii/S0098135426002905
+```
+M G Toufik Ahmed, M.M. Faruque Hasan,
+KRONOS: An algorithm for solving ill-conditioned nonlinear programs,
+Computers & Chemical Engineering,
+Volume 215,
+2026,
+109839,
+ISSN 0098-1354,
+https://doi.org/10.1016/j.compchemeng.2026.109839.
+```
 
 ```bibtex
-@article{ahmed_hasan_kronos,
+@article{ahmed2026kronos,
+  title   = {KRONOS: An algorithm for solving ill-conditioned nonlinear programs},
   author  = {Ahmed, M G Toufik and Hasan, M. M. Faruque},
   journal = {Computers \& Chemical Engineering},
-  title   = {KRONOS},
-  url     = {https://www.sciencedirect.com/science/article/pii/S0098135426002905}
+  volume  = {215},
+  pages   = {109839},
+  year    = {2026},
+  issn    = {0098-1354},
+  doi     = {10.1016/j.compchemeng.2026.109839},
 }
 ```
 
