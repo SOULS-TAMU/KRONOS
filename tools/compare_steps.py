@@ -1,5 +1,5 @@
-"""Head-to-head: the COD step (what the code does) vs the SVD/Moore-Penrose
-step (what the algorithm box says), both against the MATLAB reference."""
+"""Head-to-head: the COD step vs the SVD/Moore-Penrose
+step , both against the MATLAB reference."""
 from __future__ import annotations
 import argparse, csv, sys
 from pathlib import Path
