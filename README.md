@@ -1,6 +1,6 @@
 # KRONOS
 
-**KKT-certified nonlinear programming.**
+KKT-certified nonlinear programming.
 
 KRONOS solves
 
@@ -8,16 +8,15 @@ KRONOS solves
 min  f(x)     s.t.   h(x) = 0,   g(x) <= 0,   xL <= x <= xU
 ```
 
-by driving the full KKT system to zero with a Newton iteration whose step is
-the **minimum-norm least-squares solution** of the KKT linear system. That step
-is what keeps the iteration well defined when the system is rank deficient,
-which at a solution it usually is. There is no active-set logic and no barrier
-parameter.
+by forming the full KKT system and driving its residual to zero with Newton's
+method. The Newton step is the minimum-norm least-squares solution of the KKT
+linear system, which keeps the iteration well defined when that system is rank
+deficient, as it commonly is at a solution. Inequalities and variable bounds
+are converted to equalities using squared slack variables, so the method uses
+no active-set strategy and no barrier parameter.
 
-Every result is certified: first-order KKT verified, second-order conditions
-verified (a genuine local minimum), or explicitly uncertified.
-
----
+Each returned point is classified as first-order KKT certified, certified with
+the second-order sufficient conditions verified, or uncertified.
 
 ## Install
 
@@ -25,26 +24,25 @@ verified (a genuine local minimum), or explicitly uncertified.
 pip install https://github.com/toufik3078/test_kronos/archive/refs/heads/main.zip
 ```
 
-That is the whole installation — one command, no `git` needed, nothing to clone
-or download by hand. It pulls `numpy`, `scipy`, `sympy` and `casadi`. CasADi is
-included because the solver routes to it above ~20 variables, where it builds
-derivatives one to two orders of magnitude faster than SymPy (n=1000: 0.2 s
-versus 35 s).
+This requires no `git` and no manual download. It installs `numpy`, `scipy`,
+`sympy` and `casadi`. CasADi is a required dependency because the solver routes
+to it above roughly 20 variables, where it builds derivatives one to two orders
+of magnitude faster than SymPy (for n = 1000, 0.2 s against 35 s).
 
-If you do have `git`, this works too:
+If `git` is available:
 
 ```bash
 pip install git+https://github.com/toufik3078/test_kronos.git
 ```
 
-With figures, or with JAX as a third backend:
+Optional extras add matplotlib for figures, or JAX as a third backend:
 
 ```bash
 pip install "kronos[plot] @ https://github.com/toufik3078/test_kronos/archive/refs/heads/main.zip"
 pip install "kronos[all]  @ https://github.com/toufik3078/test_kronos/archive/refs/heads/main.zip"
 ```
 
-To work on the code instead of just using it:
+For development:
 
 ```bash
 git clone https://github.com/toufik3078/test_kronos.git
@@ -53,14 +51,12 @@ pip install -e ".[dev]"
 pytest -q
 ```
 
-Check it worked:
+Verify the installation:
 
 ```python
 import kronos
 print(kronos.__version__, len(kronos.problem_names()))     # 0.3.1 244
 ```
-
----
 
 ## Quick start
 
@@ -74,9 +70,8 @@ r = solve(p, multi_start=True, ms_num_starts=25)
 print(r.summary())
 ```
 
-Or state your own. Give it the objective, the constraints and the bounds —
-inequalities and bounds are handled internally, you do not add anything
-yourself:
+Define a problem by supplying the objective, the constraints and the bounds.
+Slack variables are introduced internally and need not be provided:
 
 ```python
 from kronos import Problem, solve
@@ -96,15 +91,14 @@ print(r.fval)      # 17.014017
 print(r.theta[:4]) # [1.0, 4.743, 3.8211503, 1.3794082]
 ```
 
-Use `inequality_sense=">="` for `>=` constraints (or a list, one per row).
-Expressions can be strings or SymPy objects. `p.save("mine.json")` and
-`Problem.load(...)` round-trip.
-
----
+Set `inequality_sense=">="` for constraints of the form `g(x) >= 0`, or pass a
+list with one entry per row. Expressions may be given as strings or as SymPy
+objects. Problems can be written to and read from JSON with `p.save(path)` and
+`Problem.load(path)`.
 
 ## Reading the result
 
-`r.summary()` prints the full picture:
+`r.summary()` reports the objective, the multistart statistics and the timing:
 
 ```
   objective           : 4.093023256
@@ -120,71 +114,63 @@ Expressions can be strings or SymPy objects. `p.save("mine.json")` and
   final |KKT residual|: 2.276e-08
 ```
 
-**"Converged" means KKT-certified**: the residual test passed *and* the
-multipliers have the right signs. A run that drives the residual to zero but
-ends with a wrong-signed multiplier is a stationary point of the reformulated
-problem, not a solution of yours, so it is not counted. To see the looser
-number too:
+A run counts as converged only if it is KKT certified, meaning the residual
+test is satisfied and the inequality multipliers have the correct signs. A run
+that reduces the residual but ends with a wrong-signed multiplier is a
+stationary point of the reformulated problem rather than a KKT point of the
+original one, and is excluded. The looser count is available with
 
 ```python
 print(r.summary(show_uncertified=True))     # adds a "residual-converged" line
 ```
 
-The `reached f*` lines appear only when a known optimum is available — either
-from a bundled problem, or because you supplied one:
+The two `f*` lines are shown only when a known optimum is available, either
+from a built-in problem or because one was supplied:
 
 ```python
 r = solve(p, fstar=17.0140173)              # or Problem.build(..., fstar=...)
-print(r.summary())
 ```
 
-Programmatically:
+The same quantities are available programmatically:
 
-| | |
+| attribute | meaning |
 |---|---|
-| `r.fval`, `r.theta` | best objective and the point that achieves it |
-| `r.n_conv` | runs that converged **and** are certified (`r.n_kkt` is an alias) |
-| `r.n_residual_conv` | runs that met the residual test, certified or not |
+| `r.fval`, `r.theta` | best objective and the corresponding point |
+| `r.n_conv` | converged and certified runs (`r.n_kkt` is an alias) |
+| `r.n_residual_conv` | runs satisfying the residual test, certified or not |
 | `r.global_hits(fstar)` | certified runs that reached a known optimum |
 | `r.runs` | one `RunResult` per multistart run |
 | `r.all_fvals`, `r.all_conv`, `r.all_kkt` | per-run arrays |
 
-Each `RunResult` carries `converged`, `kkt_certified`, `min_lam_strict`,
-`iterations`, `max_r`, `max_h`.
+Each `RunResult` provides `converged`, `kkt_certified`, `min_lam_strict`,
+`iterations`, `max_r` and `max_h`.
 
-**Converged is not the same as certified.** A run can drive the KKT residual to
-zero yet end with an inequality multiplier of the wrong sign — a stationary
-point of the reformulated problem that is not a KKT point of yours.
-`kkt_certified` is the one to check.
-
-A second-order test is also available if you want proof of a strict local
-minimum: `r.n_local`, and per run `sosc_pass` / `sosc_measured` /
-`lam_min_red`.
-
----
+Second-order information is computed but not printed. Use `r.n_local` for the
+number of runs proven to be strict local minima, and `sosc_pass`,
+`sosc_measured` and `lam_min_red` on individual runs.
 
 ## Built-in problems
 
-244 problems ship with the package — Hock-Schittkowski, CUTEst, and standard
-global-optimisation test functions, from 2 to 1000 variables, each with its
-known optimum.
+244 problems are included, drawn from the Hock-Schittkowski collection,
+CUTEst, and standard global-optimisation test functions. They range from 2 to
+1000 variables and each carries its known optimum.
 
 ```python
 from kronos import problem_names, find, load_problem
 
 problem_names()                        # all 244
-find("hs")                             # by name
-find(max_n=10, constrained=True)       # by size / constrainedness
+find("hs")                             # search by name
+find(max_n=10, constrained=True)       # filter by size and constraints
 find(constrained=False)                # unconstrained only
 p = load_problem("hs110")
 ```
 
 ```bash
-kronos list                            # the whole list, with n, m and f*
-kronos list --max-n 10                 # just the small ones
+kronos list                            # full list with n, m and f*
+kronos list --max-n 10
 ```
 
-All 244 names (n=2-4: 97  n=5-9: 72  n=10-19: 41  n=20-49: 18  n=50+: 16; 96 unconstrained):
+Sizes: 2-4: 97, 5-9: 72, 10-19: 41, 20-49: 18, 50+: 16. Of these, 96 are unconstrained.
 
 ```
 a01_beale              a02_bohachevsky1       a03_bohachevsky2       a04_bohachevsky3       a05_branin_rcos
@@ -238,8 +224,6 @@ tointqor               try_b                  twobars                vardim     
 yfitu                  zangwil2               zangwil3               zecevic3
 ```
 
----
-
 ## Plots
 
 ```python
@@ -248,27 +232,25 @@ fig = plot_runs(r, fstar=p.fstar)      # per-run objective, coloured by status
 fig.savefig("runs.png", dpi=150)
 ```
 
-Green = KKT-certified, amber = converged but uncertified, grey = failed.
-
----
+Green marks KKT-certified runs, amber converged but uncertified runs, and grey
+failed runs.
 
 ## Command line
 
 ```bash
-kronos list                            # the built-in problems
+kronos list                            # built-in problems
 kronos solve hs110 -K 25 --plot runs.png
 kronos bench hs001 hs053 -K 25 --out bench.csv
+kronos options                         # every setting, grouped
 ```
-
----
 
 ## Options
 
-Pass any option as a keyword to `solve`, or build an `Options` object and reuse
-it. The most common one is the convergence tolerance:
+Options may be passed as keyword arguments to `solve` or collected in an
+`Options` object. The convergence tolerances are the most commonly adjusted:
 
 ```python
-r = solve(p, tol_r=1e-8, tol_h=1e-8, maxIter=5000)   # tighter than the default 1e-5
+r = solve(p, tol_r=1e-8, tol_h=1e-8, maxIter=5000)   # default is 1e-5
 ```
 
 ```python
@@ -277,76 +259,99 @@ opts = Options(tol_r=1e-8, multi_start=True, ms_num_starts=50)
 r = solve(p, opts)
 ```
 
-The defaults are the configuration the bundled problems were validated with —
-Adam warm-up on, `adam_mode="C"`, multiplier-sign check enforced. These are not
-only more reliable than a bare Newton solve, they are usually *faster*, because
-a warm start converges in far fewer iterations than one that thrashes.
+The defaults match the configuration used to validate the built-in problems:
+Adam warm-up enabled, `adam_mode="C"`, and the multiplier-sign check enforced.
+This configuration is both more reliable and generally faster than a plain
+Newton solve, since a warm start requires far fewer iterations.
 
-The ones you are most likely to touch:
-
-| option | default | |
+| option | default | meaning |
 |---|---|---|
-| `tol_r`, `tol_h` | `1e-5` | converged when the KKT residual and the constraint violation fall below these |
+| `tol_r`, `tol_h` | `1e-5` | tolerances on the KKT residual and the constraint violation |
 | `maxIter` | `2000` | Newton iterations per run |
-| `multi_start` | `False` | run from many starting points |
-| `ms_num_starts`, `ms_seed` | `25`, `42` | how many, and the seed |
+| `multi_start` | `False` | solve from several starting points |
+| `ms_num_starts`, `ms_seed` | `25`, `42` | number of starting points and the random seed |
 | `use_adam_warmup` | `True` | first-order warm-up before Newton |
-| `adam_mode` | `"C"` | full pipeline per starting point; the most thorough |
-| `backend` | `"auto"` | `sympy` below 20 variables, `casadi` above |
-| `fstar` | `None` | known optimum; enables the `reached f*` lines |
-| `max_kkt_kicks` | `5` | retries when a run converges but fails certification — raise it if `converged` is much lower than `residual-converged` |
+| `adam_mode` | `"C"` | full pipeline per starting point |
+| `backend` | `"auto"` | SymPy below 20 variables, CasADi at or above |
+| `fstar` | `None` | known optimum, enabling the `reached f*` lines |
+| `max_kkt_kicks` | `5` | retries when a run converges without certification |
 
-If `summary(show_uncertified=True)` shows many runs converging without being
-certified, raising `max_kkt_kicks` is usually the most effective single change
-(measured across 28 problems: +3% certified runs for +35% time).
+When many runs converge without being certified, increasing `max_kkt_kicks` is
+usually the most effective adjustment. Measured across 28 problems it raised
+the certified count by about 3% at a 35% increase in run time.
 
-**All 58 options, grouped and explained**, without leaving Python:
+All 58 options are documented in place:
 
 ```python
 from kronos import Options
-print(Options.describe())              # everything
-print(Options.describe("Convergence")) # just one group
+print(Options.describe())              # all options
+print(Options.describe("Convergence")) # a single group
 ```
-
-or from the shell:
 
 ```bash
 kronos options
 kronos options certification
 ```
 
-Groups: Convergence, Multistart, Line search and robustness, Warm-up and
-pre-feasibility, Certification, Numerics, Backend, Output, Advanced multiplier
-handling.
-
----
+The groups are Convergence, Multistart, Line search and robustness, Warm-up and
+pre-feasibility, Certification, Numerics, Backend, Output, and Advanced
+multiplier handling.
 
 ## Backends
 
-Derivatives are pluggable; the algorithm is not. `"auto"` uses SymPy below 20
-variables and CasADi at or above it. JAX is also supported. All three produce
-identical derivatives; pick CasADi or JAX for large problems.
+Derivatives are supplied by an interchangeable backend; the algorithm itself is
+fixed. With `backend="auto"` the solver uses SymPy below 20 variables and
+CasADi at or above that threshold. JAX is available as a third option. All
+three produce identical derivatives, so the choice affects speed only.
 
 ```python
 from kronos import get_backend
 b = get_backend(p, "casadi")     # compile once
-r = solve(p, backend=b)          # reuse across many solves
+r = solve(p, backend=b)          # reuse across repeated solves
 ```
 
-For large problems, avoid oversubscribing BLAS threads when running solves in
-parallel — set `OMP_NUM_THREADS=1` per process.
+Compiling the derivatives is often the dominant one-off cost, so reusing a
+backend is worthwhile when solving the same problem many times.
 
----
+When running several solves in parallel, limit BLAS threads to avoid
+oversubscription:
+
+```bash
+OMP_NUM_THREADS=1 python my_script.py
+```
+
+## Method
+
+The solve proceeds in stages:
+
+1. **Adam warm-up.** First-order descent on `f + rho*||h||^2` to move the
+   starting point into a better basin.
+2. **Pre-feasibility.** The same KKT iteration with `f := 0`, reducing `||h||`.
+3. **Main solve.** Minimum-norm Newton steps on the full KKT system, with a
+   projected backtracking line search, feasibility restoration, and random
+   perturbations on stagnation.
+4. **Fischer-Burmeister fallback.** Starting points that converge to a
+   dual-infeasible multiplier are retried with the slacks eliminated and the
+   complementarity conditions imposed through a smoothed Fischer-Burmeister
+   function, which makes `mu >= 0` structural.
+5. **Classification.** The reduced Hessian on the null space of the active
+   constraint Jacobian distinguishes strict local minima from other stationary
+   points.
 
 ## Tutorial
 
-A full walkthrough is in [`docs/tutorial.ipynb`](docs/tutorial.ipynb)
-(rendered: `docs/tutorial.html`).
+A worked introduction is provided in [`docs/tutorial.ipynb`](docs/tutorial.ipynb),
+covering problem definition, the certification output, backends, plotting and
+the built-in problem set.
 
----
+## Tests
+
+```bash
+pytest -q
+```
 
 ## License
 
-MIT — see [`LICENSE`](LICENSE).
+MIT. See [`LICENSE`](LICENSE).
 
-Copyright (c) 2026 M G Toufik Ahmed & M. M. Faruque Hasan.
+Copyright (c) 2026 M G Toufik Ahmed and M. M. Faruque Hasan.
