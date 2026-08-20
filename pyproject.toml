@@ -1,0 +1,52 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "kronos"
+version = "0.3.1"
+description = "KKT-certified nonlinear programming by minimum-norm Newton steps"
+readme = "README.md"
+requires-python = ">=3.9"
+license = { text = "MIT" }
+authors = [
+  { name = "M G Toufik Ahmed" },
+  { name = "M. M. Faruque Hasan" },
+]
+keywords = ["optimization", "nonlinear programming", "NLP", "KKT", "Newton", "least squares"]
+classifiers = [
+  "Development Status :: 4 - Beta",
+  "Intended Audience :: Science/Research",
+  "License :: OSI Approved :: MIT License",
+  "Programming Language :: Python :: 3",
+  "Topic :: Scientific/Engineering :: Mathematics",
+]
+dependencies = [
+  "numpy>=1.21",
+  "scipy>=1.7",
+  "sympy>=1.9",
+  "casadi>=3.6",
+]
+
+[project.urls]
+Homepage = "https://github.com/toufik3078/test_kronos"
+Repository = "https://github.com/toufik3078/test_kronos"
+
+[project.optional-dependencies]
+jax = ["jax>=0.4", "jaxlib>=0.4"]
+plot = ["matplotlib>=3.5"]
+bench = ["pandas>=1.3", "matplotlib>=3.5"]
+all = ["jax>=0.4", "jaxlib>=0.4", "matplotlib>=3.5", "pandas>=1.3"]
+dev = ["pytest>=7", "matplotlib>=3.5", "pandas>=1.3"]
+
+[project.scripts]
+kronos = "kronos.cli:main"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.setuptools.package-data]
+kronos = ["data/problems/*.json"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
