@@ -4,9 +4,7 @@ The Newton update solves
 
     dz = argmin ||dz||_2  subject to  dz in argmin ||J dz - r||_2
 
-The solution is computed from the Moore-Penrose pseudoinverse
-(:mod:`kronos.linalg_svd`). :func:`lsqminnorm` here provides the same quantity
-via a complete orthogonal decomposition.
+
 """
 
 from __future__ import annotations
