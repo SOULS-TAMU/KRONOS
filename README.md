@@ -22,15 +22,36 @@ verified (a genuine local minimum), or explicitly uncertified.
 ## Install
 
 ```bash
-pip install kronos
+pip install git+https://github.com/toufik3078/test_kronos.git
 ```
 
-Pulls `numpy`, `scipy`, `sympy` and `casadi`. CasADi is included because the
+That is the whole installation — one command, nothing to clone or build. It
+pulls `numpy`, `scipy`, `sympy` and `casadi`. CasADi is included because the
 solver routes to it above ~20 variables, where it builds derivatives one to two
 orders of magnitude faster than SymPy (n=1000: 0.2 s versus 35 s).
 
-Optional: `"kronos[plot]"` for figures, `"kronos[all]"` to add JAX as a third
-backend.
+With figures, or with JAX as a third backend:
+
+```bash
+pip install "kronos[plot] @ git+https://github.com/toufik3078/test_kronos.git"
+pip install "kronos[all]  @ git+https://github.com/toufik3078/test_kronos.git"
+```
+
+To work on the code instead of just using it:
+
+```bash
+git clone https://github.com/toufik3078/test_kronos.git
+cd test_kronos
+pip install -e ".[dev]"
+pytest -q
+```
+
+Check it worked:
+
+```python
+import kronos
+print(kronos.__version__, len(kronos.problem_names()))     # 0.3.1 244
+```
 
 ---
 
