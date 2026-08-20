@@ -87,13 +87,22 @@ def test_bad_bounds_length_is_rejected():
         Problem("t", ["x1", "x2"], sp.sympify("x1"), lb=[0.0])
 
 
-def test_every_option_is_documented():
-    """Options.describe() must stay in sync with the dataclass."""
-    from kronos.options import Options, _GROUPS
+def test_every_option_is_accounted_for():
+    """Every field is either documented by describe() or explicitly withheld."""
+    from kronos.options import Options, _GROUPS, _UNDOCUMENTED
     documented = {f for _, fields in _GROUPS for f, _ in fields}
     actual = set(Options.__dataclass_fields__)
-    assert documented == actual, (
-        f"missing: {sorted(actual - documented)}, stale: {sorted(documented - actual)}")
+    assert documented.isdisjoint(_UNDOCUMENTED)
+    assert documented | _UNDOCUMENTED == actual, (
+        f"unaccounted: {sorted(actual - documented - _UNDOCUMENTED)}, "
+        f"stale: {sorted((documented | _UNDOCUMENTED) - actual)}")
+
+
+def test_withheld_options_still_work():
+    """Withholding them from the listing must not disable them."""
+    from kronos import Options
+    o = Options(step_method="cod", rank_rule="dense")
+    assert o.step_method == "cod" and o.rank_rule == "dense"
 
 
 def test_describe_renders_and_filters():

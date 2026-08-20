@@ -151,7 +151,6 @@ _GROUPS: list[tuple[str, list[tuple[str, str]]]] = [
         ("feas_tol", "constraint violation above this triggers restoration"),
         ("feas_iters", "inner iterations of feasibility restoration"),
         ("feas_step", "step fraction used during restoration"),
-        ("disable_restoration", "turn feasibility restoration off entirely"),
     ]),
     ("Warm-up (stage 0) and pre-feasibility (stage 1)", [
         ("use_adam_warmup", "first-order Adam pass before Newton"),
@@ -177,13 +176,6 @@ _GROUPS: list[tuple[str, list[tuple[str, str]]]] = [
         ("fb_enable", "Fischer-Burmeister fallback for wrong-signed runs"),
         ("fb_eps", "smoothing parameter in the Fischer-Burmeister function"),
     ]),
-    ("Numerics", [
-        ("step_method", "minimum-norm step: 'pinv' (SVD) or 'cod'"),
-        ("svd_tol_rule", "singular-value cutoff rule for step_method='pinv'"),
-        ("rank_rule", "rank tolerance: 'auto', 'dense' or 'sparse'"),
-        ("tikhonov_mu", "regularisation weight when step_method='tikhonov'"),
-        ("use_dummy_variable", "include the internal variable in the KKT system"),
-    ]),
     ("Backend", [
         ("backend", "'auto', 'sympy', 'casadi' or 'jax'"),
         ("backend_switch_n", "variable count at which 'auto' switches to casadi"),
@@ -204,6 +196,15 @@ _GROUPS: list[tuple[str, list[tuple[str, str]]]] = [
         ("max_iter_after_promotion", "iterations allowed after such a promotion"),
     ]),
 ]
+
+
+# Numerical alternatives to the documented step. They remain selectable, but
+# are omitted from ``describe()`` so the documented interface matches the
+# published method.
+_UNDOCUMENTED = {
+    "step_method", "svd_tol_rule", "rank_rule", "tikhonov_mu",
+    "use_dummy_variable", "disable_restoration",
+}
 
 
 def _describe(only: Optional[str] = None) -> str:

@@ -4,11 +4,9 @@ The Newton update solves
 
     dz = argmin ||dz||_2  subject to  dz in argmin ||J dz - r||_2
 
-Two implementations are available through ``Options.step_method``: ``"pinv"``
-(the default, in :mod:`kronos.linalg_svd`) and ``"cod"``, a complete orthogonal
-decomposition implemented here as :func:`lsqminnorm`. The remaining methods,
-``"lstsq"``, ``"tikhonov"`` and ``"backslash"``, do not compute a minimum-norm
-solution and are provided for comparison.
+The solution is computed from the Moore-Penrose pseudoinverse
+(:mod:`kronos.linalg_svd`). :func:`lsqminnorm` here provides the same quantity
+via a complete orthogonal decomposition.
 """
 
 from __future__ import annotations
@@ -140,10 +138,6 @@ def min_norm_solve(
     svd_tol_rule: str = "matlab",
 ) -> np.ndarray:
     """Dispatch the linear step.
-
-    ``"pinv"`` is the default. ``"cod"`` computes the same minimum-norm
-    least-squares solution by a different factorisation. The remainder do not
-    compute a minimum-norm solution and are provided for comparison.
 
     - ``"pinv"``      : ``J^dagger r`` from the SVD (default)
     - ``"cod"``       : complete orthogonal decomposition (= MATLAB lsqminnorm)
