@@ -1,7 +1,6 @@
 """The algorithm-box step: SVD with the Moore-Penrose pseudoinverse.
 
-These test the *published* formulation, kept separate from the COD step that
-the reference implementation actually uses.
+These test the *published* formulation
 """
 import numpy as np
 import pytest
