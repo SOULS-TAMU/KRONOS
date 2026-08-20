@@ -1,4 +1,5 @@
-"""Top-level solve entry point."""
+"""Top-level solve entry point.
+"""
 
 from __future__ import annotations
 

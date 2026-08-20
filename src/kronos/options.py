@@ -1,11 +1,5 @@
 """Solver options.
 
-The defaults correspond to the configuration used to validate the bundled
-problems: Adam warm-up enabled, ``adam_mode="C"`` (the full pipeline applied
-independently to each starting point), and the multiplier-sign check enforced.
-This configuration is both more reliable and generally faster than a plain
-Newton solve, since a warm start requires substantially fewer iterations.
-
 ``Options.describe()`` lists every setting with its default and purpose.
 """
 
@@ -97,9 +91,8 @@ class Options:
 
     step_method: Literal["pinv", "cod", "lstsq", "tikhonov", "backslash"] = "pinv"
     """Minimum-norm least-squares step, used for the Newton direction and for
-    feasibility restoration.  ``"pinv"`` is the Moore-Penrose pseudoinverse via
-    the SVD; ``"cod"`` is a complete orthogonal decomposition.  The two agree
-    to within noise across the whole benchmark."""
+    feasibility restoration. ``"pinv"`` uses the Moore-Penrose pseudoinverse via
+    the SVD; ``"cod"`` uses a complete orthogonal decomposition."""
 
     svd_tol_rule: Literal["matlab", "numpy", "exact"] = "matlab"
     """Singular-value cutoff for ``step_method="pinv"``: below
@@ -107,11 +100,8 @@ class Options:
     every nonzero singular value."""
 
     rank_rule: Literal["auto", "dense", "sparse"] = "auto"
-    """Which of MATLAB's two ``lsqminnorm`` rank tolerances to use.  MATLAB
-    dispatches on storage -- its symbolic backend builds a dense KKT matrix
-    (dense COD) and its CasADi backend a sparse one (SuiteSparseQR, ~40x
-    looser).  ``"auto"`` mirrors that: ``"dense"`` below ``backend_switch_n``
-    variables, ``"sparse"`` at or above it."""
+    """Rank tolerance for ``step_method="cod"``. ``"auto"`` uses ``"dense"``
+    below ``backend_switch_n`` variables and ``"sparse"`` at or above it."""
 
     tikhonov_mu: float = 1e-8
     disable_restoration: bool = False

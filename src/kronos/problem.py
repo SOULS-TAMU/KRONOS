@@ -1,20 +1,14 @@
 """Problem definition and squared-slack reformulation.
 
-KRONOS solves equality-constrained problems
-
-    min f(P)   s.t.  H(P) = 0
-
-so inequalities and variable bounds are folded into ``H`` with squared slacks
-before the solver ever sees them:
+Inequalities and variable bounds are converted to equality constraints:
 
     g_i(x) <= 0   ->   g_i(x) + s_i**2 = 0        sigma_i = +1
     g_i(x) >= 0   ->   g_i(x) - s_i**2 = 0        sigma_i = -1
     x_j >= l_j    ->   x_j - l_j - s**2  = 0      sigma   = -1
     x_j <= u_j    ->   u_j - x_j - s**2  = 0      sigma   = -1
 
-The sign ``sigma_i`` and the row/slack correspondence are recorded so the
-multiplier of the original inequality can be recovered as ``mu_i = sigma_i *
-nu_i`` and checked for dual feasibility.
+The sign ``sigma_i`` and the row-to-slack correspondence are recorded, so the
+multiplier of the original inequality is recovered as ``mu_i = sigma_i * nu_i``.
 """
 
 from __future__ import annotations

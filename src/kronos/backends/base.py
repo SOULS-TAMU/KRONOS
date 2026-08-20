@@ -1,11 +1,6 @@
 """Backend interface.
 
-A backend supplies the derivative information required by the KKT iteration.
-The internal variable ``xs`` is not a backend concern: its contribution to the
-KKT system is constant and is assembled analytically in :mod:`kronos.core`, so
-a backend sees only the problem variables.
-
-Required at each evaluation point ``(theta, lam)``:
+A backend supplies, at each evaluation point ``(theta, lam)``:
 
     f(theta)                     scalar objective
     grad_f(theta)                (n,)

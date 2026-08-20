@@ -1,12 +1,6 @@
-"""JAX backend: forward/reverse-mode AD with JIT compilation.
+"""JAX backend: forward and reverse-mode AD with JIT compilation.
 
-Aimed at large problems, where the Hessian of the Lagrangian dominates the cost.
-The five KKT quantities are fused into one jitted function, so the shared graph
-is traced once and the Hessian is computed as ``jacfwd(jacrev(...))``.
-
-Requires 64-bit mode -- the solver's tolerances are 1e-5 on a residual that
-routinely spans many orders of magnitude, and float32 cannot support that.
-``jax.config.update("jax_enable_x64", True)`` is applied on import.
+Requires 64-bit mode, which is enabled on import.
 """
 
 from __future__ import annotations

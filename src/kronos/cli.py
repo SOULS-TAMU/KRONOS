@@ -1,4 +1,5 @@
-"""Command line interface:  ``kronos <command> ...``"""
+"""Command line interface: ``kronos <command> ...``
+"""
 
 from __future__ import annotations
 

@@ -1,8 +1,7 @@
 """Result visualisation.
 
-All functions return a matplotlib ``Figure`` and never call ``show()``, so they
-compose into larger reports.  ``matplotlib`` is an optional dependency
-(``pip install kronos[plot]``).
+All functions return a matplotlib ``Figure`` and do not call ``show()``.
+``matplotlib`` is an optional dependency (``pip install kronos[plot]``).
 """
 
 from __future__ import annotations

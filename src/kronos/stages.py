@@ -2,12 +2,10 @@
 
 ``adam_mode`` determines how the K multistart columns are processed:
 
-``"A"``  Warm-up applied to every column, pre-feasibility to the first only,
-         followed by a single solve receiving the whole (n, K) matrix.
-``"B"``  Warm-up applied to the first column only; the inner solver then
-         scatters K fresh starts around it.
-``"C"``  Stages 0 to 2 applied independently to each column. The most thorough
-         setting and the default.
+``"A"``  Warm-up on every column, pre-feasibility on the first, then a single
+         solve receiving the whole (n, K) matrix.
+``"B"``  Warm-up on the first column only.
+``"C"``  Stages 0 to 2 applied independently to each column. The default.
 """
 
 from __future__ import annotations

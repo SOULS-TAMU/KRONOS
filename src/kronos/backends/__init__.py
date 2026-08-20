@@ -1,4 +1,5 @@
-"""Derivative backends."""
+"""Derivative backends.
+"""
 
 from __future__ import annotations
 
@@ -33,9 +34,8 @@ def get_backend(problem, name: str = "auto", switch_n: int = 20, **kwargs):
     if name == "auto":
         name = "casadi" if problem.n >= switch_n else "sympy"
         if name == "casadi" and "casadi" not in available_backends():
-            # SymPy builds the Hessian element-wise and is roughly two orders
-            # of magnitude slower at this size (n=1000: 0.2 s against 35 s), so
-            # the fallback is reported rather than applied silently.
+            # Reported rather than applied silently, since SymPy is markedly
+            # slower at this size.
             import warnings
             warnings.warn(
                 f"{problem.name!r} has {problem.n} variables, which routes to the "

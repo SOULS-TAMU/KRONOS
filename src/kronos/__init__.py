@@ -1,11 +1,5 @@
 """KRONOS: KKT-certified nonlinear programming.
 
-The solver forms the full KKT system and drives its residual to zero with
-Newton's method. The Newton step is the minimum-norm least-squares solution of
-the KKT linear system, which keeps the iteration well defined when that system
-is rank deficient. Inequalities and variable bounds are converted to equalities
-using squared slack variables.
-
 Example
 -------
 >>> from kronos import Problem, solve

@@ -14,14 +14,15 @@ $$
 $$
 
 by forming the full KKT system and driving its residual to zero with Newton's
-method. The Newton step is the minimum-norm least-squares solution of the KKT
-linear system, which keeps the iteration well defined when that system is rank
-deficient, as it commonly is at a solution. Inequalities and variable bounds
-are converted to equalities using squared slack variables, so the method uses
-no active-set strategy and no barrier parameter.
+method, taking the minimum-norm least-squares solution of the KKT linear system
+as the step. Inequalities and variable bounds are converted to equalities using
+squared slack variables.
 
 Each returned point is classified as first-order KKT certified, certified with
 the second-order sufficient conditions verified, or uncertified.
+
+The method is described in
+[Ahmed and Hasan, *Computers & Chemical Engineering*](https://www.sciencedirect.com/science/article/pii/S0098135426002905).
 
 ## Install
 
@@ -30,9 +31,7 @@ pip install https://github.com/toufik3078/test_kronos/archive/refs/heads/main.zi
 ```
 
 This requires no `git` and no manual download. It installs `numpy`, `scipy`,
-`sympy` and `casadi`. CasADi is a required dependency because the solver routes
-to it above roughly 20 variables, where it builds derivatives one to two orders
-of magnitude faster than SymPy (for n = 1000, 0.2 s against 35 s).
+`sympy` and `casadi`.
 
 If `git` is available:
 
@@ -119,11 +118,9 @@ objects. Problems can be written to and read from JSON with `p.save(path)` and
   final |KKT residual|: 2.276e-08
 ```
 
-A run counts as converged only if it is KKT certified, meaning the residual
-test is satisfied and the inequality multipliers have the correct signs. A run
-that reduces the residual but ends with a wrong-signed multiplier is a
-stationary point of the reformulated problem rather than a KKT point of the
-original one, and is excluded. The looser count is available with
+A run counts as converged only if it is KKT certified: the residual test is
+satisfied and the inequality multipliers have the correct signs. The looser
+count is available with
 
 ```python
 print(r.summary(show_uncertified=True))     # adds a "residual-converged" line
@@ -264,11 +261,6 @@ opts = Options(tol_r=1e-8, multi_start=True, ms_num_starts=50)
 r = solve(p, opts)
 ```
 
-The defaults match the configuration used to validate the built-in problems:
-Adam warm-up enabled, `adam_mode="C"`, and the multiplier-sign check enforced.
-This configuration is both more reliable and generally faster than a plain
-Newton solve, since a warm start requires far fewer iterations.
-
 | option | default | meaning |
 |---|---|---|
 | `tol_r`, `tol_h` | `1e-5` | tolerances on the KKT residual and the constraint violation |
@@ -281,9 +273,8 @@ Newton solve, since a warm start requires far fewer iterations.
 | `fstar` | `None` | known optimum, enabling the `reached f*` lines |
 | `max_kkt_kicks` | `5` | retries when a run converges without certification |
 
-When many runs converge without being certified, increasing `max_kkt_kicks` is
-usually the most effective adjustment. Measured across 28 problems it raised
-the certified count by about 3% at a 35% increase in run time.
+When many runs converge without being certified, increasing `max_kkt_kicks`
+often helps.
 
 All 58 options are documented in place:
 
@@ -304,10 +295,9 @@ multiplier handling.
 
 ## Backends
 
-Derivatives are supplied by an interchangeable backend; the algorithm itself is
-fixed. With `backend="auto"` the solver uses SymPy below 20 variables and
-CasADi at or above that threshold. JAX is available as a third option. All
-three produce identical derivatives, so the choice affects speed only.
+With `backend="auto"` the solver uses SymPy below 20 variables and CasADi at or
+above that threshold. JAX is available as a third option. All three produce
+identical derivatives, so the choice affects speed only.
 
 ```python
 from kronos import get_backend
@@ -325,23 +315,22 @@ oversubscription:
 OMP_NUM_THREADS=1 python my_script.py
 ```
 
-## Method
+## Citation
 
-The solve proceeds in stages:
+If you use KRONOS in published work, please cite:
 
-1. **Adam warm-up.** First-order descent on `f + rho*||h||^2` to move the
-   starting point into a better basin.
-2. **Pre-feasibility.** The same KKT iteration with `f := 0`, reducing `||h||`.
-3. **Main solve.** Minimum-norm Newton steps on the full KKT system, with a
-   projected backtracking line search, feasibility restoration, and random
-   perturbations on stagnation.
-4. **Fischer-Burmeister fallback.** Starting points that converge to a
-   dual-infeasible multiplier are retried with the slacks eliminated and the
-   complementarity conditions imposed through a smoothed Fischer-Burmeister
-   function, which makes `mu >= 0` structural.
-5. **Classification.** The reduced Hessian on the null space of the active
-   constraint Jacobian distinguishes strict local minima from other stationary
-   points.
+> M G Toufik Ahmed and M. M. Faruque Hasan.
+> *Computers & Chemical Engineering*.
+> https://www.sciencedirect.com/science/article/pii/S0098135426002905
+
+```bibtex
+@article{ahmed_hasan_kronos,
+  author  = {Ahmed, M G Toufik and Hasan, M. M. Faruque},
+  journal = {Computers \& Chemical Engineering},
+  title   = {KRONOS},
+  url     = {https://www.sciencedirect.com/science/article/pii/S0098135426002905}
+}
+```
 
 ## Tutorial
 

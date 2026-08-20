@@ -1,7 +1,7 @@
-"""Benchmark harness and comparison against a reference table.
+"""Benchmark harness.
 
-Computes per-problem metrics -- certified convergence, global hits, timings --
-and can diff them against a reference CSV.
+Computes per-problem metrics (certified convergence, global hits, timings) and
+compares them against a reference CSV.
 """
 
 from __future__ import annotations

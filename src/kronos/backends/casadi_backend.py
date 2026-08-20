@@ -1,9 +1,7 @@
 """CasADi backend: sparse algorithmic differentiation.
 
-The default for problems of 20 variables or more. The SymPy expression graph is
-translated once to CasADi ``SX``, and all five KKT quantities are compiled into
-a single ``casadi.Function``. One call per Newton iteration then returns all of
-them, so shared subexpressions are evaluated once rather than five times.
+Used at or above ``backend_switch_n`` variables. All five KKT quantities are
+compiled into a single ``casadi.Function``.
 """
 
 from __future__ import annotations

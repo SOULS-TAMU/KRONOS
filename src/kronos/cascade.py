@@ -1,15 +1,9 @@
-"""Per-start cascade between the two formulations.
+"""Per-start cascade between the squared-slack and Fischer-Burmeister formulations.
 
-The squared-slack formulation is applied first to every starting point. Only
-those that fail, either by not converging or by converging to a dual-infeasible
-multiplier, are retried with the Fischer-Burmeister formulation. The total cost
-is therefore that of the primary solve plus the fallback on the small fraction
-of starts that require it.
-
-For each start the better of the two results is kept, ranked by
-``3 * kkt_certified + converged`` with ties broken by the smaller objective.
-The reported solution is the best objective among certified starts, falling
-back to converged starts only if none is certified.
+The squared-slack formulation is applied to every starting point. Starting
+points that do not converge, or that converge to a dual-infeasible multiplier,
+are retried with the Fischer-Burmeister formulation. For each start the better
+of the two results is kept.
 """
 
 from __future__ import annotations

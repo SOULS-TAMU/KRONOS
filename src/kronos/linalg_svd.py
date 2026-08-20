@@ -1,27 +1,8 @@
 """Minimum-norm least-squares by the Moore-Penrose pseudoinverse.
 
-Computes the Newton and feasibility-restoration steps as
-
-    dz    = -J^dagger r
-    dP    = -alpha_feas * J_H^dagger H
-
-with ``^dagger`` the Moore-Penrose pseudoinverse obtained from the SVD. This is
-the default step, selected by ``step_method="pinv"``. The complete orthogonal
-decomposition in :mod:`kronos.linalg` computes the same quantity by a different
-factorisation.
-
-Rank tolerance
---------------
-The pseudoinverse is not defined without a numerical rank, and the choice of
-cutoff has a large effect on ill-conditioned systems. Three conventions are
-available through ``Options.svd_tol_rule``:
-
-``"matlab"``   ``tol = max(m, n) * eps * sigma_max``, the default, matching
-               MATLAB's ``pinv``.
-``"numpy"``    ``tol = 1e-15 * sigma_max``, matching NumPy's ``pinv``.
-``"exact"``    ``tol = 0``, inverting every nonzero singular value. This is the
-               literal definition and is numerically unusable on a
-               rank-deficient system; it is included for completeness.
+Computes ``A^dagger b`` from the SVD. Selected with ``step_method="pinv"``,
+which is the default. The singular-value cutoff is set by
+``Options.svd_tol_rule``.
 """
 
 from __future__ import annotations

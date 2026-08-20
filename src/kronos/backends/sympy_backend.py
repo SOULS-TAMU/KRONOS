@@ -1,9 +1,6 @@
 """SymPy backend: symbolic differentiation compiled to NumPy.
 
-The default for problems below 20 variables, where forming the Hessian of the
-Lagrangian symbolically is inexpensive. Above that size the symbolic Hessian
-grows quadratically in the number of variables and the CasADi backend is
-substantially faster.
+Used below ``backend_switch_n`` variables.
 """
 
 from __future__ import annotations
@@ -21,11 +18,7 @@ from .base import BaseBackend, KKTParts
 
 @contextmanager
 def _quiet():
-    """Suppress floating-point warnings during evaluation.
-
-    Evaluating a compiled expression at a singular point legitimately produces
-    0/0 and overflow. The resulting NaN is handled in :mod:`kronos.core`.
-    """
+    """Suppress floating-point warnings during evaluation."""
     with warnings.catch_warnings():
         warnings.simplefilter("ignore", RuntimeWarning)
         with np.errstate(all="ignore"):
@@ -37,10 +30,8 @@ __all__ = ["SympyBackend"]
 def _dirac(x):
     """Dirac delta: infinite at zero, zero elsewhere.
 
-    The second derivative of ``|x|`` is ``2*delta(x)``, which SymPy emits as
-    ``DiracDelta``. The NumPy namespace used by ``lambdify`` has no such name,
-    so without this a Hessian containing it raises ``NameError`` and any problem
-    involving ``abs()`` fails.
+    Required because the second derivative of ``|x|`` is ``2*delta(x)``, which
+    SymPy emits as ``DiracDelta``.
     """
     x = np.asarray(x, dtype=float)
     out = np.where(x == 0.0, np.inf, 0.0)

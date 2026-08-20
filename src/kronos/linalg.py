@@ -4,29 +4,11 @@ The Newton update solves
 
     dz = argmin ||dz||_2  subject to  dz in argmin ||J dz - r||_2
 
-and every solver path routes through this module. Two implementations are
-provided, selected by ``Options.step_method``:
-
-``"pinv"``  the Moore-Penrose pseudoinverse computed from the SVD, in
-            :mod:`kronos.linalg_svd`. This is the default.
-``"cod"``   a complete orthogonal decomposition, two QR factorisations with
-            column pivoting, implemented here as :func:`lsqminnorm`.
-
-Both return a minimum-norm least-squares solution. In exact arithmetic they
-coincide; in floating point on rank-deficient or badly scaled systems the
-solutions differ slightly, though measurements across the bundled problem set
-show no systematic advantage to either. ``"cod"`` matches MATLAB's
-``lsqminnorm`` and is provided for comparison against results produced with it.
-
-Rank tolerance
---------------
-A minimum-norm solution requires a numerical rank, and the cutoff is not
-uniquely determined. :func:`_rank_tolerance` provides the two conventions used
-by MATLAB, which differ by roughly a factor of forty and are selected by
-``Options.rank_rule``.
-
-The remaining methods, ``"lstsq"``, ``"tikhonov"`` and ``"backslash"``, do not
-compute a minimum-norm solution and exist only for comparison.
+Two implementations are available through ``Options.step_method``: ``"pinv"``
+(the default, in :mod:`kronos.linalg_svd`) and ``"cod"``, a complete orthogonal
+decomposition implemented here as :func:`lsqminnorm`. The remaining methods,
+``"lstsq"``, ``"tikhonov"`` and ``"backslash"``, do not compute a minimum-norm
+solution and are provided for comparison.
 """
 
 from __future__ import annotations
@@ -53,20 +35,10 @@ def _rank_tolerance(shape: tuple[int, int], R: np.ndarray,
                     rule: str = "dense") -> float:
     """Rank tolerance for the complete orthogonal decomposition.
 
-    Two conventions are available, corresponding to MATLAB's dense and sparse
-    ``lsqminnorm`` paths, which do not agree:
+    ``"dense"``   ``max(m, n) * eps * |R[0,0]|``
+    ``"sparse"``  ``20 * (m + n) * eps * max_j ||A(:,j)||_2``
 
-    - ``"dense"``: ``max(m, n) * eps * |R[0,0]|``. Under column pivoting
-      ``|R[0,0]|`` is the largest column 2-norm of ``A``, so this costs nothing
-      to compute.
-    - ``"sparse"``: ``20 * (m + n) * eps * max_j ||A(:,j)||_2``, the
-      SuiteSparseQR default, roughly forty times looser and therefore more
-      aggressive in truncating small singular directions.
-
-    On 250 generated test matrices the two conventions produced different
-    solutions in 45 cases, so the choice is not cosmetic. ``Options.rank_rule``
-    selects between them, defaulting to the dense rule below
-    ``backend_switch_n`` variables and the sparse rule at or above it.
+    Selected by ``Options.rank_rule``.
     """
     if R.size == 0:
         return 0.0

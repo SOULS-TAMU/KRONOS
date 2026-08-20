@@ -1,9 +1,4 @@
-"""Stage 0: Adam warm-up.
-
-First-order descent on the merit function ``f(theta) + rho * ||h(theta)||^2``,
-applied before the Newton iteration. Momentum with a per-coordinate adaptive
-step size traverses saddles and shallow valleys, which moves the starting point
-into a more favourable basin.
+"""Stage 0: Adam warm-up on the merit function ``f(theta) + rho * ||h(theta)||^2``.
 """
 
 from __future__ import annotations

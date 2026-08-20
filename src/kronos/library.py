@@ -1,9 +1,8 @@
 """The bundled test problems.
 
-244 problems from the Hock-Schittkowski set, CUTEst, and standard global-
-optimisation test functions, spanning 2 to 1000 variables and covering
-unconstrained, equality-constrained and inequality-constrained cases.  Each
-carries its known optimum ``fstar``.
+244 problems from the Hock-Schittkowski collection, CUTEst, and standard
+global-optimisation test functions, spanning 2 to 1000 variables. Each carries
+its known optimum ``fstar``.
 
 Use :func:`problem_names` to list them, or :func:`find` to search.
 """

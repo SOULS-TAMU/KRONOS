@@ -1,21 +1,15 @@
 """Fischer-Burmeister formulation.
 
-When the squared-slack formulation converges to a point whose inequality
-multiplier has the wrong sign, the point is stationary for the reformulated
-problem but is not a KKT point of the original one. This module eliminates the
-slack variables and imposes the complementarity conditions directly through a
-smoothed Fischer-Burmeister function
+The slack variables are eliminated and the complementarity conditions imposed
+through the smoothed function
 
     phi(mu, b) = mu + b - sqrt(mu**2 + b**2 + eps**2),    b = -sigma * g(x)
 
-whose zero is equivalent to ``mu >= 0``, ``b >= 0`` and ``mu * b = 0``. Dual
-feasibility is therefore structural rather than verified after the fact.
+whose zero is equivalent to ``mu >= 0``, ``b >= 0`` and ``mu * b = 0``.
 
 The state is ``z = [xs, theta, lam, mu]`` and the residual
 
     R = [ dL/dxs ; dL/dtheta ; h_dummy ; h_eq ; phi ]
-
-is driven to zero with the same minimum-norm Newton step used elsewhere.
 """
 
 from __future__ import annotations

@@ -1,35 +1,8 @@
-"""The KRONOS KKT iteration.
+"""The KKT iteration.
 
-Implements the Newton iteration on the full KKT residual, with a projected
-backtracking line search, feasibility restoration, stagnation perturbations,
-multiplier-sign enforcement and the second-order classification.
-
-Implementation notes
---------------------
-Four details of the iteration are worth stating explicitly, as they affect the
-numerical trajectory and are not evident from the update formulas alone.
-
-1. An internal variable ``xs`` is appended, contributing ``(xs - 1)**2`` to the
-   objective and the row ``xs - 1 = 0`` to the constraints. It vanishes at the
-   solution but enlarges the KKT matrix by one row and column, which changes
-   the minimum-norm step. Controlled by ``Options.use_dummy_variable``.
-
-2. Feasibility restoration moves the iterate, but the Newton step that follows
-   reuses the residual and Jacobian evaluated before restoration.
-
-3. The line search applies a relative Armijo condition,
-   ``Phi_try <= Phi0 * (1 - c1*alpha)``.
-
-4. The incumbent update at the end of each iteration pairs the objective value
-   from the start of the iteration with the iterate from its end.
-
-MATLAB semantics
-----------------
-Several NumPy operations differ from their MATLAB counterparts in ways that
-matter at singular points, and the MATLAB behaviour is reproduced here:
-``max`` and ``min`` ignore NaN rather than propagating it, and the two-argument
-form used for projection returns the finite operand, so a NaN iterate is
-projected onto the bound rather than remaining NaN.
+Newton iteration on the full KKT residual, with a projected backtracking line
+search, feasibility restoration, stagnation perturbations, multiplier-sign
+enforcement and the second-order classification.
 """
 
 from __future__ import annotations
@@ -48,10 +21,7 @@ __all__ = ["RunResult", "SolveResult", "run_one_start", "solve_multistart"]
 _XT = 1.0
 
 
-# NaN-omitting max and min. At a point where some gradient entries are NaN,
-# for instance 0/0 at a non-differentiable origin, the largest finite residual
-# is the meaningful quantity and the run can still converge. Propagating the
-# NaN instead would prevent the run from ever terminating.
+# NaN-omitting max and min.
 def _mmax(x) -> float:
     x = np.asarray(x, dtype=float)
     if x.size == 0:
@@ -89,8 +59,7 @@ class RunResult:
     sosc_pass: bool = False
     sosc_measured: bool = False
     """Whether the second-order test was performed. The Fischer-Burmeister
-    formulation does not form a reduced Hessian, so its runs leave this False.
-    An untested run is distinct from one that failed the test."""
+    formulation does not form a reduced Hessian, so its runs leave this False."""
     lam_min_red: float = np.nan
     lam_user: np.ndarray = None          # type: ignore[assignment]
     elapsed: float = 0.0
@@ -135,10 +104,8 @@ class SolveResult:
     def n_conv(self) -> int:
         """Runs that converged and are KKT certified.
 
-        A run whose residual reaches zero but whose inequality multipliers have
-        the wrong sign is stationary for the reformulated problem rather than a
-        KKT point of the original one, so it is not counted here. The looser
-        count is ``n_residual_conv``.
+        The looser count, without the multiplier-sign requirement, is
+        ``n_residual_conv``.
         """
         return int(self.all_kkt.sum())
 
@@ -182,19 +149,16 @@ class SolveResult:
 
     def summary(self, fstar: Optional[float] = None,
                 show_uncertified: bool = False) -> str:
-        """A human-readable report of the solve.
+        """A report of the solve.
 
-        "Converged" means **KKT-certified**: the residual test passed *and* the
-        multipliers have the right signs.  Pass ``show_uncertified=True`` to
-        also see runs that merely met the residual test.
+        Converged counts KKT-certified runs. ``show_uncertified=True`` adds the
+        count of runs meeting the residual test alone. The ``f*`` lines appear
+        when a known optimum is available, either from the problem or from
+        ``fstar``.
 
-        If the problem carries a known optimum (or one is passed as ``fstar``),
-        the report adds how many runs reached it, both as a fraction of all
-        runs and as a fraction of the converged ones.
-
-        Second-order information is not printed but remains available:
+        Second-order results are not printed but remain available as
         ``n_local``, ``n_stationary``, ``n_sosc_unmeasured``, and per run
-        ``sosc_pass`` / ``sosc_measured`` / ``lam_min_red``.
+        ``sosc_pass``, ``sosc_measured`` and ``lam_min_red``.
         """
         if fstar is None:
             fstar = self.info.get("fstar")
@@ -321,13 +285,7 @@ class _Assembler:
 
 
 def _clip_matlab(x: np.ndarray, lo, hi) -> np.ndarray:
-    """``min(max(x, lo), hi)`` with NaN mapped to the lower bound.
-
-    The two-argument form returns the finite operand, so a NaN entry is
-    projected onto ``lo`` and the run continues from a finite point. Plain
-    clipping would propagate the NaN and leave the run unable to progress.
-    Problems whose starting point is itself NaN depend on this behaviour.
-    """
+    """``min(max(x, lo), hi)``, with NaN entries mapped to the lower bound."""
     x = np.where(np.isnan(x), lo, x)
     return np.clip(x, lo, hi)
 
@@ -522,8 +480,7 @@ def run_one_start(
             stag_count = 0
 
         # ---------------- feasibility restoration ----------------
-        # The residual and Jacobian are deliberately not rebuilt afterwards;
-        # see the implementation notes in the module docstring.
+        # The residual and Jacobian are not rebuilt afterwards.
         if max_h > opts.feas_tol and not opts.disable_restoration:
             h_i, Jh_i = h, Jh_full
             for _ in range(opts.feas_iters):
