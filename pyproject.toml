@@ -5,7 +5,7 @@ build-backend = "setuptools.build_meta"
 [project]
 name = "kronos"
 version = "0.3.1"
-description = "KKT-certified nonlinear programming by minimum-norm Newton steps"
+description = "KKT-certified nonlinear programming by minimum-norm least-square steps"
 readme = "README.md"
 requires-python = ">=3.9"
 license = { text = "MIT" }
