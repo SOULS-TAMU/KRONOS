@@ -1,6 +1,6 @@
 """The KKT iteration.
 
-Newton iteration on the full KKT residual, with a projected backtracking line
+Newton like iteration on the full KKT residual, with a projected backtracking line
 search, feasibility restoration, stagnation perturbations, multiplier-sign
 enforcement and the second-order classification.
 """
