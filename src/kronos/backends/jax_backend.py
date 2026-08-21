@@ -15,6 +15,25 @@ from .base import BaseBackend, KKTParts
 __all__ = ["JaxBackend"]
 
 
+_INT64_MAX = 2 ** 63 - 1
+
+
+def _floatify(expr):
+    """Convert integer coefficients too large for int64 into floats.
+
+    ``lambdify`` emits integer literals as Python ``int``. JAX rejects an
+    ``int`` outside the int64 range as an argument to a jitted computation, so
+    such coefficients are converted to floats. Exponents are left alone, since
+    an integer power is both faster and more accurate than a float one.
+    """
+    big = {n for n in expr.atoms(sp.Integer) if abs(int(n)) > _INT64_MAX}
+    if not big:
+        return expr
+    exponents = {e.exp for e in expr.atoms(sp.Pow) if e.exp.is_Integer}
+    subs = {n: sp.Float(int(n)) for n in big if n not in exponents}
+    return expr.xreplace(subs) if subs else expr
+
+
 def _enable_x64():
     import jax
     jax.config.update("jax_enable_x64", True)
@@ -38,8 +57,9 @@ class JaxBackend(BaseBackend):
         old = sys.getrecursionlimit()
         sys.setrecursionlimit(max(old, 100000))
         try:
-            f_fn = sp.lambdify(syms, sp.sympify(problem.f), modules="jax")
-            h_fns = [sp.lambdify(syms, sp.sympify(e), modules="jax") for e in problem.h]
+            f_fn = sp.lambdify(syms, _floatify(sp.sympify(problem.f)), modules="jax")
+            h_fns = [sp.lambdify(syms, _floatify(sp.sympify(e)), modules="jax")
+                     for e in problem.h]
         finally:
             sys.setrecursionlimit(old)
 

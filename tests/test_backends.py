@@ -142,3 +142,29 @@ def test_no_warning_when_casadi_is_available_or_not_needed():
     with _w.catch_warnings():
         _w.simplefilter("error")            # any warning becomes a failure
         assert get_backend(small, "auto", switch_n=20).name == "sympy"
+
+
+@pytest.mark.skipif("jax" not in available_backends(), reason="jax not installed")
+def test_large_integer_coefficients_are_accepted():
+    """JAX rejects Python ints outside int64 range as jitted arguments.
+
+    SymPy emits integer literals as ``int``, so a coefficient such as 5e19 has
+    to be converted to a float before lambdifying.
+    """
+    p = Problem.build("big", ["x1", "x2"],
+                      objective="50000000000000000000*x1**2 + x2**2/2")
+    b = get_backend(p, "jax")
+    f, g, _, _, _ = b.kkt(np.array([1.0, 1.0]), np.zeros(1))
+    assert np.isclose(f, 5e19)
+    assert np.allclose(g, [1e20, 1.0])
+
+
+@pytest.mark.skipif("jax" not in available_backends(), reason="jax not installed")
+def test_integer_exponents_survive_floatification():
+    """Only oversized coefficients are converted; exponents stay integral."""
+    from kronos.backends.jax_backend import _floatify
+    import sympy as sp
+    x = sp.Symbol("x", real=True)
+    out = _floatify(10**20 * x**2)
+    assert any(a.is_Float for a in out.atoms(sp.Float))
+    assert all(e.exp.is_Integer for e in out.atoms(sp.Pow))
