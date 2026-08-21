@@ -218,16 +218,6 @@ Those three always sum to `r.n_conv`. Runs solved by the Fischer-Burmeister
 formulation fall into the third category, because that path does not form a
 reduced Hessian; not measured is not the same as failed.
 
-The distinction is not academic:
-
-| problem | converged | strict local minima |
-|---|---|---|
-| `hs053` | 25/25 | 25/25 |
-| `hs071` | 17/25 | 10/25 |
-| `a01_beale` | 23/25 | 4/25 |
-
-On `a01_beale`, 23 runs reach certified KKT points but only 4 are minima.
-
 Per run, the same information is available as `sosc_pass`, `sosc_measured` and
 `lam_min_red`, the last being the smallest eigenvalue of the Hessian of the
 Lagrangian restricted to the null space of the active constraint Jacobian. A
