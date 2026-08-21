@@ -203,6 +203,16 @@ class SolveResult:
 
         # Everything below describes a single run, not the whole multistart.
         L.append("  ---- best run ----")
+        if best is None:
+            status = "no runs"
+        elif best.converged:
+            status = "converged (KKT certified)"
+        elif best.reformulated_stationary:
+            status = "not converged: stationary for the reformulated system, "\
+                     "multiplier signs not satisfied"
+        else:
+            status = "NOT CONVERGED: reported as the best available point only"
+        L.append(f"  status      : {status}")
         L.append(f"  objective   : {self.fval:.10g}"
                  + (f"      f* = {fstar:.10g}" if fstar is not None and np.isfinite(fstar) else ""))
 

@@ -57,7 +57,7 @@ Verify the installation:
 
 ```python
 import kronos
-print(kronos.__version__, len(kronos.problem_names()))     # 0.4.1 244
+print(kronos.__version__, len(kronos.problem_names()))     # 0.4.2 244
 ```
 
 ## Quick start
@@ -109,6 +109,7 @@ objects. Problems can be written to and read from JSON with `p.save(path)` and
   reached f*  : 25/25  (100.0%)
   time        : 0.659 s   (0.026 s/run)
   ---- best run ----
+  status      : converged (KKT certified)
   objective   : 4.093023256      f* = 4.093
   x*          : theta1     = -0.7674418605
                 theta2     = 0.2558139535
@@ -120,7 +121,10 @@ objects. Problems can be written to and read from JSON with `p.save(path)` and
 ```
 
 The first three lines summarise all the multistart runs; everything below
-`best run` describes the single run that produced the reported solution.
+`best run` describes the single run that produced the reported solution. Its
+`status` states whether that run is KKT certified, merely stationary for the
+reformulated system, or did not converge at all, so a reported objective is
+never mistaken for a solution.
 
 `x*` lists the problem's own variables; the slack variables introduced for the
 inequalities and bounds are internal and not shown.

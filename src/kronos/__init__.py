@@ -19,7 +19,7 @@ from .library import load_problem, problem_names, iter_problems, find
 from .linalg import lsqminnorm, min_norm_solve, null_space
 from .backends import get_backend, available_backends
 
-__version__ = "0.4.1"
+__version__ = "0.4.2"
 
 __all__ = [
     "Options", "Problem", "SlackRow", "RunResult", "SolveResult", "solve",

@@ -278,3 +278,30 @@ def test_converged_means_certified_at_every_level():
         assert r.converged == r.runs[r.best_run].converged
         assert r.success == r.converged
     assert r.n_reformulated_stationary >= r.n_conv
+
+
+def test_best_run_status_distinguishes_the_three_outcomes():
+    """The reported point must say what it is.
+
+    Without this, a run that never converged is presented with an objective and
+    an x* exactly like a solution.
+    """
+    # 1. certified
+    r = solve(load_problem("hs053"),
+              Options(multi_start=True, ms_num_starts=5, ms_seed=42))
+    assert "status      : converged (KKT certified)" in r.summary()
+    assert r.runs[r.best_run].converged
+
+    # 2. stationary for the reformulated system, but not certified
+    r = solve(load_problem("hs071"),
+              Options(multi_start=True, ms_num_starts=10, ms_seed=42,
+                      enforce_kkt_sign=False, fb_enable=False))
+    b = r.runs[r.best_run]
+    if b.reformulated_stationary and not b.converged:
+        assert "stationary for the reformulated system" in r.summary()
+
+    # 3. nothing converged at all
+    r = solve(load_problem("a10_perm"),
+              Options(multi_start=True, ms_num_starts=3, ms_seed=42, maxIter=50))
+    if r.n_conv == 0 and not r.runs[r.best_run].reformulated_stationary:
+        assert "NOT CONVERGED" in r.summary()
