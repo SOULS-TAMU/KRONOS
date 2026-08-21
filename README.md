@@ -27,25 +27,6 @@ The method is described in KRONOS: An algorithm for solving ill-conditioned nonl
 ```bash
 pip install https://github.com/toufik3078/test_kronos/archive/refs/heads/main.zip
 ```
-==============================================================
-  KRONOS  |  hs053   n=15  m=13
-==============================================================
-  converged   : 25/25  (100.0%)
-  reached f*  : 25/25  (100.0%)
-  time        : 0.659 s   (0.026 s/run)
-  ---- best run ----
-  objective   : 4.093023256      f* = 4.093
-  x*          : theta1     = -0.7674418605
-                theta2     = 0.2558139535
-                theta3     = 0.6279069767
-                theta4     = -0.1162790698
-                theta5     = 0.2558139535
-  iterations  : 3
-==============================================================
-```
-
-The first three lines summarise all the multistart runs; everything under
-`best run` describes the single run that produced the reported solution.
 
 This requires no `git` and no manual download. It installs `numpy`, `scipy`,
 `sympy` and `casadi`.
@@ -55,25 +36,6 @@ If `git` is available:
 ```bash
 pip install git+https://github.com/toufik3078/test_kronos.git
 ```
-==============================================================
-  KRONOS  |  hs053   n=15  m=13
-==============================================================
-  converged   : 25/25  (100.0%)
-  reached f*  : 25/25  (100.0%)
-  time        : 0.659 s   (0.026 s/run)
-  ---- best run ----
-  objective   : 4.093023256      f* = 4.093
-  x*          : theta1     = -0.7674418605
-                theta2     = 0.2558139535
-                theta3     = 0.6279069767
-                theta4     = -0.1162790698
-                theta5     = 0.2558139535
-  iterations  : 3
-==============================================================
-```
-
-The first three lines summarise all the multistart runs; everything under
-`best run` describes the single run that produced the reported solution.
 
 Optional extras add matplotlib for figures, or JAX as a third backend:
 
@@ -81,25 +43,6 @@ Optional extras add matplotlib for figures, or JAX as a third backend:
 pip install "kronos[plot] @ https://github.com/toufik3078/test_kronos/archive/refs/heads/main.zip"
 pip install "kronos[all]  @ https://github.com/toufik3078/test_kronos/archive/refs/heads/main.zip"
 ```
-==============================================================
-  KRONOS  |  hs053   n=15  m=13
-==============================================================
-  converged   : 25/25  (100.0%)
-  reached f*  : 25/25  (100.0%)
-  time        : 0.659 s   (0.026 s/run)
-  ---- best run ----
-  objective   : 4.093023256      f* = 4.093
-  x*          : theta1     = -0.7674418605
-                theta2     = 0.2558139535
-                theta3     = 0.6279069767
-                theta4     = -0.1162790698
-                theta5     = 0.2558139535
-  iterations  : 3
-==============================================================
-```
-
-The first three lines summarise all the multistart runs; everything under
-`best run` describes the single run that produced the reported solution.
 
 For development:
 
@@ -109,25 +52,6 @@ cd test_kronos
 pip install -e ".[dev]"
 pytest -q
 ```
-==============================================================
-  KRONOS  |  hs053   n=15  m=13
-==============================================================
-  converged   : 25/25  (100.0%)
-  reached f*  : 25/25  (100.0%)
-  time        : 0.659 s   (0.026 s/run)
-  ---- best run ----
-  objective   : 4.093023256      f* = 4.093
-  x*          : theta1     = -0.7674418605
-                theta2     = 0.2558139535
-                theta3     = 0.6279069767
-                theta4     = -0.1162790698
-                theta5     = 0.2558139535
-  iterations  : 3
-==============================================================
-```
-
-The first three lines summarise all the multistart runs; everything under
-`best run` describes the single run that produced the reported solution.
 
 Verify the installation:
 
@@ -135,25 +59,6 @@ Verify the installation:
 import kronos
 print(kronos.__version__, len(kronos.problem_names()))     # 0.4.0 244
 ```
-==============================================================
-  KRONOS  |  hs053   n=15  m=13
-==============================================================
-  converged   : 25/25  (100.0%)
-  reached f*  : 25/25  (100.0%)
-  time        : 0.659 s   (0.026 s/run)
-  ---- best run ----
-  objective   : 4.093023256      f* = 4.093
-  x*          : theta1     = -0.7674418605
-                theta2     = 0.2558139535
-                theta3     = 0.6279069767
-                theta4     = -0.1162790698
-                theta5     = 0.2558139535
-  iterations  : 3
-==============================================================
-```
-
-The first three lines summarise all the multistart runs; everything under
-`best run` describes the single run that produced the reported solution.
 
 ## Quick start
 
@@ -166,25 +71,6 @@ p = load_problem("hs053")
 r = solve(p, multi_start=True, ms_num_starts=25)
 print(r.summary())
 ```
-==============================================================
-  KRONOS  |  hs053   n=15  m=13
-==============================================================
-  converged   : 25/25  (100.0%)
-  reached f*  : 25/25  (100.0%)
-  time        : 0.659 s   (0.026 s/run)
-  ---- best run ----
-  objective   : 4.093023256      f* = 4.093
-  x*          : theta1     = -0.7674418605
-                theta2     = 0.2558139535
-                theta3     = 0.6279069767
-                theta4     = -0.1162790698
-                theta5     = 0.2558139535
-  iterations  : 3
-==============================================================
-```
-
-The first three lines summarise all the multistart runs; everything under
-`best run` describes the single run that produced the reported solution.
 
 Define a problem by supplying the objective, the constraints and the bounds.
 
@@ -205,25 +91,6 @@ r = solve(p, multi_start=True, ms_num_starts=25)
 print(r.fval)      # 17.014017
 print(r.theta[:4]) # [1.0, 4.743, 3.8211503, 1.3794082]
 ```
-==============================================================
-  KRONOS  |  hs053   n=15  m=13
-==============================================================
-  converged   : 25/25  (100.0%)
-  reached f*  : 25/25  (100.0%)
-  time        : 0.659 s   (0.026 s/run)
-  ---- best run ----
-  objective   : 4.093023256      f* = 4.093
-  x*          : theta1     = -0.7674418605
-                theta2     = 0.2558139535
-                theta3     = 0.6279069767
-                theta4     = -0.1162790698
-                theta5     = 0.2558139535
-  iterations  : 3
-==============================================================
-```
-
-The first three lines summarise all the multistart runs; everything under
-`best run` describes the single run that produced the reported solution.
 
 Set `inequality_sense=">="` for constraints of the form `g(x) >= 0`, or pass a
 list with one entry per row. Expressions may be given as strings or as SymPy
@@ -252,41 +119,7 @@ objects. Problems can be written to and read from JSON with `p.save(path)` and
 ==============================================================
 ```
 
-The first three lines summarise all the multistart runs; everything under
-`best run` describes the single run that produced the reported solution.
-==============================================================
-  KRONOS  |  hs053   n=15  m=13
-==============================================================
-  converged   : 25/25  (100.0%)
-  reached f*  : 25/25  (100.0%)
-  objective   : 4.093023256      f* = 4.093
-  x*          : theta1     = -0.7674418605
-                theta2     = 0.2558139535
-                theta3     = 0.6279069767
-                theta4     = -0.1162790698
-                theta5     = 0.2558139535
-  iterations  : 3
-  time        : 0.659 s   (0.026 s/run)
-==============================================================
-```
-==============================================================
-  KRONOS  |  hs053   n=15  m=13
-==============================================================
-  converged   : 25/25  (100.0%)
-  reached f*  : 25/25  (100.0%)
-  time        : 0.659 s   (0.026 s/run)
-  ---- best run ----
-  objective   : 4.093023256      f* = 4.093
-  x*          : theta1     = -0.7674418605
-                theta2     = 0.2558139535
-                theta3     = 0.6279069767
-                theta4     = -0.1162790698
-                theta5     = 0.2558139535
-  iterations  : 3
-==============================================================
-```
-
-The first three lines summarise all the multistart runs; everything under
+The first three lines summarise all the multistart runs; everything below
 `best run` describes the single run that produced the reported solution.
 
 `x*` lists the problem's own variables; the slack variables introduced for the
@@ -303,25 +136,6 @@ converged. That looser count is available separately:
 r.n_conv                        # converged, i.e. KKT certified
 r.n_reformulated_stationary     # stationary for the reformulated system
 ```
-==============================================================
-  KRONOS  |  hs053   n=15  m=13
-==============================================================
-  converged   : 25/25  (100.0%)
-  reached f*  : 25/25  (100.0%)
-  time        : 0.659 s   (0.026 s/run)
-  ---- best run ----
-  objective   : 4.093023256      f* = 4.093
-  x*          : theta1     = -0.7674418605
-                theta2     = 0.2558139535
-                theta3     = 0.6279069767
-                theta4     = -0.1162790698
-                theta5     = 0.2558139535
-  iterations  : 3
-==============================================================
-```
-
-The first three lines summarise all the multistart runs; everything under
-`best run` describes the single run that produced the reported solution.
 
 The report is plain ASCII with no colour codes or terminal control characters,
 so it appears identically in a terminal, in a Jupyter or VS Code notebook, and
@@ -341,69 +155,12 @@ p = Problem.build(..., fstar=17.0140173)    # stored with the problem
 r = solve(p, fstar=17.0140173)              # for one solve
 print(r.summary(fstar=17.0140173))          # for one report
 ```
-==============================================================
-  KRONOS  |  hs053   n=15  m=13
-==============================================================
-  converged   : 25/25  (100.0%)
-  reached f*  : 25/25  (100.0%)
-  time        : 0.659 s   (0.026 s/run)
-  ---- best run ----
-  objective   : 4.093023256      f* = 4.093
-  x*          : theta1     = -0.7674418605
-                theta2     = 0.2558139535
-                theta3     = 0.6279069767
-                theta4     = -0.1162790698
-                theta5     = 0.2558139535
-  iterations  : 3
-==============================================================
-```
-
-The first three lines summarise all the multistart runs; everything under
-`best run` describes the single run that produced the reported solution.
 
 A run counts as having reached `f*` when it is certified and
 
 ```
-==============================================================
-  KRONOS  |  hs053   n=15  m=13
-==============================================================
-  converged   : 25/25  (100.0%)
-  reached f*  : 25/25  (100.0%)
-  time        : 0.659 s   (0.026 s/run)
-  ---- best run ----
-  objective   : 4.093023256      f* = 4.093
-  x*          : theta1     = -0.7674418605
-                theta2     = 0.2558139535
-                theta3     = 0.6279069767
-                theta4     = -0.1162790698
-                theta5     = 0.2558139535
-  iterations  : 3
-==============================================================
-```
-
-The first three lines summarise all the multistart runs; everything under
-`best run` describes the single run that produced the reported solution.
 |f - f*| <= max(1e-4, 1e-3 * max(1, |f*|))
 ```
-==============================================================
-  KRONOS  |  hs053   n=15  m=13
-==============================================================
-  converged   : 25/25  (100.0%)
-  reached f*  : 25/25  (100.0%)
-  time        : 0.659 s   (0.026 s/run)
-  ---- best run ----
-  objective   : 4.093023256      f* = 4.093
-  x*          : theta1     = -0.7674418605
-                theta2     = 0.2558139535
-                theta3     = 0.6279069767
-                theta4     = -0.1162790698
-                theta5     = 0.2558139535
-  iterations  : 3
-==============================================================
-```
-
-The first three lines summarise all the multistart runs; everything under
-`best run` describes the single run that produced the reported solution.
 
 so the test is absolute for small optima and relative for large ones. Query it
 directly with:
@@ -411,25 +168,6 @@ directly with:
 ```python
 r.global_hits(17.0140173)      # number of certified runs that reached it
 ```
-==============================================================
-  KRONOS  |  hs053   n=15  m=13
-==============================================================
-  converged   : 25/25  (100.0%)
-  reached f*  : 25/25  (100.0%)
-  time        : 0.659 s   (0.026 s/run)
-  ---- best run ----
-  objective   : 4.093023256      f* = 4.093
-  x*          : theta1     = -0.7674418605
-                theta2     = 0.2558139535
-                theta3     = 0.6279069767
-                theta4     = -0.1162790698
-                theta5     = 0.2558139535
-  iterations  : 3
-==============================================================
-```
-
-The first three lines summarise all the multistart runs; everything under
-`best run` describes the single run that produced the reported solution.
 
 The built-in problems already carry their known optima, so `load_problem`
 supplies `fstar` automatically.
@@ -467,72 +205,15 @@ find(max_n=10, constrained=True)       # filter by size and constraints
 find(constrained=False)                # unconstrained only
 p = load_problem("hs110")
 ```
-==============================================================
-  KRONOS  |  hs053   n=15  m=13
-==============================================================
-  converged   : 25/25  (100.0%)
-  reached f*  : 25/25  (100.0%)
-  time        : 0.659 s   (0.026 s/run)
-  ---- best run ----
-  objective   : 4.093023256      f* = 4.093
-  x*          : theta1     = -0.7674418605
-                theta2     = 0.2558139535
-                theta3     = 0.6279069767
-                theta4     = -0.1162790698
-                theta5     = 0.2558139535
-  iterations  : 3
-==============================================================
-```
-
-The first three lines summarise all the multistart runs; everything under
-`best run` describes the single run that produced the reported solution.
 
 ```bash
 kronos list                            # full list with n, m and f*
 kronos list --max-n 10
 ```
-==============================================================
-  KRONOS  |  hs053   n=15  m=13
-==============================================================
-  converged   : 25/25  (100.0%)
-  reached f*  : 25/25  (100.0%)
-  time        : 0.659 s   (0.026 s/run)
-  ---- best run ----
-  objective   : 4.093023256      f* = 4.093
-  x*          : theta1     = -0.7674418605
-                theta2     = 0.2558139535
-                theta3     = 0.6279069767
-                theta4     = -0.1162790698
-                theta5     = 0.2558139535
-  iterations  : 3
-==============================================================
-```
-
-The first three lines summarise all the multistart runs; everything under
-`best run` describes the single run that produced the reported solution.
 
 Sizes: 2-4: 97, 5-9: 72, 10-19: 41, 20-49: 18, 50+: 16. Of these, 96 are unconstrained.
 
 ```
-==============================================================
-  KRONOS  |  hs053   n=15  m=13
-==============================================================
-  converged   : 25/25  (100.0%)
-  reached f*  : 25/25  (100.0%)
-  time        : 0.659 s   (0.026 s/run)
-  ---- best run ----
-  objective   : 4.093023256      f* = 4.093
-  x*          : theta1     = -0.7674418605
-                theta2     = 0.2558139535
-                theta3     = 0.6279069767
-                theta4     = -0.1162790698
-                theta5     = 0.2558139535
-  iterations  : 3
-==============================================================
-```
-
-The first three lines summarise all the multistart runs; everything under
-`best run` describes the single run that produced the reported solution.
 a01_beale              a02_bohachevsky1       a03_bohachevsky2       a04_bohachevsky3       a05_branin_rcos
 a06_colville           a07_dixon_price        a08_hump               a09_matyas             a10_perm
 a11_powell_singular    a13_sphere             a14_sum_squares        a15_trid               a16_zakharov
@@ -583,25 +264,6 @@ sineval                sisser                 ssnlbeam               supersim   
 tointqor               try_b                  twobars                vardim                 yfit
 yfitu                  zangwil2               zangwil3               zecevic3
 ```
-==============================================================
-  KRONOS  |  hs053   n=15  m=13
-==============================================================
-  converged   : 25/25  (100.0%)
-  reached f*  : 25/25  (100.0%)
-  time        : 0.659 s   (0.026 s/run)
-  ---- best run ----
-  objective   : 4.093023256      f* = 4.093
-  x*          : theta1     = -0.7674418605
-                theta2     = 0.2558139535
-                theta3     = 0.6279069767
-                theta4     = -0.1162790698
-                theta5     = 0.2558139535
-  iterations  : 3
-==============================================================
-```
-
-The first three lines summarise all the multistart runs; everything under
-`best run` describes the single run that produced the reported solution.
 
 ## Plots
 
@@ -610,25 +272,6 @@ from kronos.plotting import plot_runs
 fig = plot_runs(r, fstar=p.fstar)      # per-run objective, coloured by status
 fig.savefig("runs.png", dpi=150)
 ```
-==============================================================
-  KRONOS  |  hs053   n=15  m=13
-==============================================================
-  converged   : 25/25  (100.0%)
-  reached f*  : 25/25  (100.0%)
-  time        : 0.659 s   (0.026 s/run)
-  ---- best run ----
-  objective   : 4.093023256      f* = 4.093
-  x*          : theta1     = -0.7674418605
-                theta2     = 0.2558139535
-                theta3     = 0.6279069767
-                theta4     = -0.1162790698
-                theta5     = 0.2558139535
-  iterations  : 3
-==============================================================
-```
-
-The first three lines summarise all the multistart runs; everything under
-`best run` describes the single run that produced the reported solution.
 
 Green marks converged (KKT-certified) runs, amber runs that met the residual
 test without certification, and grey failed runs.
@@ -641,25 +284,6 @@ kronos solve hs110 -K 25 --plot runs.png
 kronos bench hs001 hs053 -K 25 --out bench.csv
 kronos options                         # every setting, grouped
 ```
-==============================================================
-  KRONOS  |  hs053   n=15  m=13
-==============================================================
-  converged   : 25/25  (100.0%)
-  reached f*  : 25/25  (100.0%)
-  time        : 0.659 s   (0.026 s/run)
-  ---- best run ----
-  objective   : 4.093023256      f* = 4.093
-  x*          : theta1     = -0.7674418605
-                theta2     = 0.2558139535
-                theta3     = 0.6279069767
-                theta4     = -0.1162790698
-                theta5     = 0.2558139535
-  iterations  : 3
-==============================================================
-```
-
-The first three lines summarise all the multistart runs; everything under
-`best run` describes the single run that produced the reported solution.
 
 ## Options
 
@@ -669,50 +293,12 @@ Options may be passed as keyword arguments to `solve` or collected in an
 ```python
 r = solve(p, tol_r=1e-8, tol_h=1e-8, maxIter=5000)   # default is 1e-5
 ```
-==============================================================
-  KRONOS  |  hs053   n=15  m=13
-==============================================================
-  converged   : 25/25  (100.0%)
-  reached f*  : 25/25  (100.0%)
-  time        : 0.659 s   (0.026 s/run)
-  ---- best run ----
-  objective   : 4.093023256      f* = 4.093
-  x*          : theta1     = -0.7674418605
-                theta2     = 0.2558139535
-                theta3     = 0.6279069767
-                theta4     = -0.1162790698
-                theta5     = 0.2558139535
-  iterations  : 3
-==============================================================
-```
-
-The first three lines summarise all the multistart runs; everything under
-`best run` describes the single run that produced the reported solution.
 
 ```python
 from kronos import Options
 opts = Options(tol_r=1e-8, multi_start=True, ms_num_starts=50)
 r = solve(p, opts)
 ```
-==============================================================
-  KRONOS  |  hs053   n=15  m=13
-==============================================================
-  converged   : 25/25  (100.0%)
-  reached f*  : 25/25  (100.0%)
-  time        : 0.659 s   (0.026 s/run)
-  ---- best run ----
-  objective   : 4.093023256      f* = 4.093
-  x*          : theta1     = -0.7674418605
-                theta2     = 0.2558139535
-                theta3     = 0.6279069767
-                theta4     = -0.1162790698
-                theta5     = 0.2558139535
-  iterations  : 3
-==============================================================
-```
-
-The first three lines summarise all the multistart runs; everything under
-`best run` describes the single run that produced the reported solution.
 
 | option | default | meaning |
 |---|---|---|
@@ -757,49 +343,11 @@ from kronos import Options
 print(Options.describe())              # all options
 print(Options.describe("Convergence")) # a single group
 ```
-==============================================================
-  KRONOS  |  hs053   n=15  m=13
-==============================================================
-  converged   : 25/25  (100.0%)
-  reached f*  : 25/25  (100.0%)
-  time        : 0.659 s   (0.026 s/run)
-  ---- best run ----
-  objective   : 4.093023256      f* = 4.093
-  x*          : theta1     = -0.7674418605
-                theta2     = 0.2558139535
-                theta3     = 0.6279069767
-                theta4     = -0.1162790698
-                theta5     = 0.2558139535
-  iterations  : 3
-==============================================================
-```
-
-The first three lines summarise all the multistart runs; everything under
-`best run` describes the single run that produced the reported solution.
 
 ```bash
 kronos options
 kronos options certification
 ```
-==============================================================
-  KRONOS  |  hs053   n=15  m=13
-==============================================================
-  converged   : 25/25  (100.0%)
-  reached f*  : 25/25  (100.0%)
-  time        : 0.659 s   (0.026 s/run)
-  ---- best run ----
-  objective   : 4.093023256      f* = 4.093
-  x*          : theta1     = -0.7674418605
-                theta2     = 0.2558139535
-                theta3     = 0.6279069767
-                theta4     = -0.1162790698
-                theta5     = 0.2558139535
-  iterations  : 3
-==============================================================
-```
-
-The first three lines summarise all the multistart runs; everything under
-`best run` describes the single run that produced the reported solution.
 
 The groups are Convergence, Multistart, Line search and robustness, Warm-up and
 pre-feasibility, Certification, Numerics, Backend, Output, and Advanced
@@ -817,25 +365,6 @@ from kronos import get_backend
 b = get_backend(p, "casadi")     # compile once
 r = solve(p, backend=b)          # reuse across repeated solves
 ```
-==============================================================
-  KRONOS  |  hs053   n=15  m=13
-==============================================================
-  converged   : 25/25  (100.0%)
-  reached f*  : 25/25  (100.0%)
-  time        : 0.659 s   (0.026 s/run)
-  ---- best run ----
-  objective   : 4.093023256      f* = 4.093
-  x*          : theta1     = -0.7674418605
-                theta2     = 0.2558139535
-                theta3     = 0.6279069767
-                theta4     = -0.1162790698
-                theta5     = 0.2558139535
-  iterations  : 3
-==============================================================
-```
-
-The first three lines summarise all the multistart runs; everything under
-`best run` describes the single run that produced the reported solution.
 
 Compiling the derivatives is often the dominant one-off cost, so reusing a
 backend is worthwhile when solving the same problem many times.
@@ -846,25 +375,6 @@ oversubscription:
 ```bash
 OMP_NUM_THREADS=1 python my_script.py
 ```
-==============================================================
-  KRONOS  |  hs053   n=15  m=13
-==============================================================
-  converged   : 25/25  (100.0%)
-  reached f*  : 25/25  (100.0%)
-  time        : 0.659 s   (0.026 s/run)
-  ---- best run ----
-  objective   : 4.093023256      f* = 4.093
-  x*          : theta1     = -0.7674418605
-                theta2     = 0.2558139535
-                theta3     = 0.6279069767
-                theta4     = -0.1162790698
-                theta5     = 0.2558139535
-  iterations  : 3
-==============================================================
-```
-
-The first three lines summarise all the multistart runs; everything under
-`best run` describes the single run that produced the reported solution.
 
 ## Citation
 
@@ -873,25 +383,6 @@ ill-conditioned nonlinear programs', *Computers & Chemical Engineering*, 215,
 109839. doi: 10.1016/j.compchemeng.2026.109839.
 
 ```
-==============================================================
-  KRONOS  |  hs053   n=15  m=13
-==============================================================
-  converged   : 25/25  (100.0%)
-  reached f*  : 25/25  (100.0%)
-  time        : 0.659 s   (0.026 s/run)
-  ---- best run ----
-  objective   : 4.093023256      f* = 4.093
-  x*          : theta1     = -0.7674418605
-                theta2     = 0.2558139535
-                theta3     = 0.6279069767
-                theta4     = -0.1162790698
-                theta5     = 0.2558139535
-  iterations  : 3
-==============================================================
-```
-
-The first three lines summarise all the multistart runs; everything under
-`best run` describes the single run that produced the reported solution.
 M G Toufik Ahmed, M.M. Faruque Hasan,
 KRONOS: An algorithm for solving ill-conditioned nonlinear programs,
 Computers & Chemical Engineering,
@@ -901,25 +392,6 @@ Volume 215,
 ISSN 0098-1354,
 https://doi.org/10.1016/j.compchemeng.2026.109839.
 ```
-==============================================================
-  KRONOS  |  hs053   n=15  m=13
-==============================================================
-  converged   : 25/25  (100.0%)
-  reached f*  : 25/25  (100.0%)
-  time        : 0.659 s   (0.026 s/run)
-  ---- best run ----
-  objective   : 4.093023256      f* = 4.093
-  x*          : theta1     = -0.7674418605
-                theta2     = 0.2558139535
-                theta3     = 0.6279069767
-                theta4     = -0.1162790698
-                theta5     = 0.2558139535
-  iterations  : 3
-==============================================================
-```
-
-The first three lines summarise all the multistart runs; everything under
-`best run` describes the single run that produced the reported solution.
 
 ```bibtex
 @article{ahmed2026kronos,
@@ -933,25 +405,6 @@ The first three lines summarise all the multistart runs; everything under
   doi     = {10.1016/j.compchemeng.2026.109839},
 }
 ```
-==============================================================
-  KRONOS  |  hs053   n=15  m=13
-==============================================================
-  converged   : 25/25  (100.0%)
-  reached f*  : 25/25  (100.0%)
-  time        : 0.659 s   (0.026 s/run)
-  ---- best run ----
-  objective   : 4.093023256      f* = 4.093
-  x*          : theta1     = -0.7674418605
-                theta2     = 0.2558139535
-                theta3     = 0.6279069767
-                theta4     = -0.1162790698
-                theta5     = 0.2558139535
-  iterations  : 3
-==============================================================
-```
-
-The first three lines summarise all the multistart runs; everything under
-`best run` describes the single run that produced the reported solution.
 
 ## Tutorial
 
@@ -964,25 +417,6 @@ the built-in problem set.
 ```bash
 pytest -q
 ```
-==============================================================
-  KRONOS  |  hs053   n=15  m=13
-==============================================================
-  converged   : 25/25  (100.0%)
-  reached f*  : 25/25  (100.0%)
-  time        : 0.659 s   (0.026 s/run)
-  ---- best run ----
-  objective   : 4.093023256      f* = 4.093
-  x*          : theta1     = -0.7674418605
-                theta2     = 0.2558139535
-                theta3     = 0.6279069767
-                theta4     = -0.1162790698
-                theta5     = 0.2558139535
-  iterations  : 3
-==============================================================
-```
-
-The first three lines summarise all the multistart runs; everything under
-`best run` describes the single run that produced the reported solution.
 
 ## License
 
