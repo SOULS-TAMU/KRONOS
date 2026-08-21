@@ -46,7 +46,8 @@ class RunResult:
 
     theta: np.ndarray
     fval: float = np.inf
-    converged: bool = False
+    residual_converged: bool = False
+    """The residual test alone: max|r| and max|h| below tolerance."""
     iterations: int = 0
     max_r: float = np.inf
     max_h: float = np.inf
@@ -65,8 +66,15 @@ class RunResult:
     elapsed: float = 0.0
 
     @property
+    def converged(self) -> bool:
+        """Converged means KKT certified: the residual test passed and the
+        inequality multipliers have the correct signs."""
+        return bool(self.residual_converged and self.dual_feas_strict)
+
+    @property
     def kkt_certified(self) -> bool:
-        return bool(self.converged and self.dual_feas_strict)
+        """Alias of :attr:`converged`."""
+        return self.converged
 
 
 @dataclass
@@ -75,7 +83,8 @@ class SolveResult:
 
     theta: np.ndarray
     fval: float
-    converged: bool
+    residual_converged: bool
+    """Whether the reported run met the residual test."""
     runs: list[RunResult] = field(default_factory=list)
     best_run: Optional[int] = None
     elapsed: float = 0.0
@@ -89,8 +98,20 @@ class SolveResult:
         return np.array([r.fval for r in self.runs])
 
     @property
+    def converged(self) -> bool:
+        """Whether the reported solution is KKT certified."""
+        if self.best_run is None or not self.runs:
+            return False
+        return self.runs[self.best_run].converged
+
+    @property
+    def success(self) -> bool:
+        """Alias of :attr:`converged`."""
+        return self.converged
+
+    @property
     def all_conv(self) -> np.ndarray:
-        return np.array([r.converged for r in self.runs], dtype=bool)
+        return np.array([r.residual_converged for r in self.runs], dtype=bool)
 
     @property
     def all_kkt(self) -> np.ndarray:
@@ -147,56 +168,49 @@ class SolveResult:
         tol = max(1e-4, 1e-3 * max(1.0, abs(fstar)))
         return int((self.all_kkt & (np.abs(self.all_fvals - fstar) <= tol)).sum())
 
-    def summary(self, fstar: Optional[float] = None,
-                show_uncertified: bool = False) -> str:
+    def summary(self, fstar: Optional[float] = None, max_show: int = 10) -> str:
         """A report of the solve.
 
-        Converged counts KKT-certified runs. ``show_uncertified=True`` adds the
-        count of runs meeting the residual test alone. The ``f*`` lines appear
+        Converged counts KKT-certified runs. The ``reached f*`` line appears
         when a known optimum is available, either from the problem or from
         ``fstar``.
-
-        Second-order results are not printed but remain available as
-        ``n_local``, ``n_stationary``, ``n_sosc_unmeasured``, and per run
-        ``sosc_pass``, ``sosc_measured`` and ``lam_min_red``.
         """
         if fstar is None:
             fstar = self.info.get("fstar")
         K = len(self.runs)
         best = self.runs[self.best_run] if self.best_run is not None and self.runs else None
-        L = []
-        L.append("=" * 62)
+        w = 62
+        L = ["=" * w]
         L.append(f"  KRONOS  |  {self.info.get('problem', 'problem')}"
                  f"   n={self.info.get('n', '?')}  m={self.info.get('m', '?')}")
-        L.append("=" * 62)
-        L.append(f"  solver              : {self.solver_used}")
-        L.append(f"  objective           : {self.fval:.10g}")
-        if fstar is not None and np.isfinite(fstar):
-            L.append(f"  known optimum f*    : {fstar:.10g}   (gap {abs(self.fval - fstar):.3e})")
-        L.append("  ---- multistart ----")
-        L.append(f"  runs                : {K}")
-        L.append(f"  converged           : {self.n_conv}/{K}  ({100*self.n_conv/max(K,1):.1f}%)"
-                 f"   [KKT-certified]")
-        if show_uncertified:
-            nr = self.n_residual_conv
-            L.append(f"  residual-converged  : {nr}/{K}  ({100*nr/max(K,1):.1f}%)"
-                     f"   [not necessarily certified]")
+        L.append("=" * w)
+        L.append(f"  converged   : {self.n_conv}/{K}  ({100 * self.n_conv / max(K, 1):.1f}%)")
         if fstar is not None and np.isfinite(fstar):
             g = self.global_hits(fstar)
-            ratio = (100 * g / self.n_conv) if self.n_conv else float("nan")
-            L.append(f"  reached f*          : {g}/{K}  ({100*g/max(K,1):.1f}%)")
-            L.append(f"  f* / converged      : {ratio:.1f}%")
+            L.append(f"  reached f*  : {g}/{K}  ({100 * g / max(K, 1):.1f}%)")
+        L.append(f"  objective   : {self.fval:.10g}"
+                 + (f"      f* = {fstar:.10g}" if fstar is not None and np.isfinite(fstar) else ""))
+
+        # Report the problem's own variables; slack variables are internal.
+        x = np.asarray(self.theta, dtype=float)
+        idx = self.info.get("user_vars")
+        if idx:
+            x = x[np.asarray(idx, dtype=int)]
+        names = self.info.get("var_names")
+        labels = [names[i] for i in idx] if (names and idx) else None
+
+        n_show = min(max_show, x.size)
+        for k in range(n_show):
+            tag = f"{labels[k]}" if labels else f"x[{k}]"
+            head = "  x*          : " if k == 0 else " " * 16
+            L.append(f"{head}{tag:<10} = {x[k]:.10g}")
+        if x.size > n_show:
+            L.append(" " * 16 + f"... {x.size - n_show} more")
         if best is not None:
-            L.append("  ---- best run ----")
-            L.append(f"  certified           : {best.kkt_certified}"
-                     f"   (min signed multiplier {best.min_lam_strict:.3e})")
-            L.append(f"  iterations          : {best.iterations}")
-            L.append(f"  final |KKT residual|: {best.max_r:.3e}")
-            L.append(f"  final |constraints| : {best.max_h:.3e}")
-        L.append("  ---- timing ----")
-        L.append(f"  total               : {self.elapsed:.3f} s"
-                 f"   ({self.elapsed/max(K,1):.3f} s/run)")
-        L.append("=" * 62)
+            L.append(f"  iterations  : {best.iterations}")
+        L.append(f"  time        : {self.elapsed:.3f} s   "
+                 f"({self.elapsed / max(K, 1):.3f} s/run)")
+        L.append("=" * w)
         return "\n".join(L)
 
     def __repr__(self) -> str:
@@ -425,7 +439,7 @@ def run_one_start(
 
             sse_best = curr_sse
             p_best = p.copy()
-            res.converged = True
+            res.residual_converged = True
             res.dual_feas = dual_ok
             res.min_lam_ineq = min_lam
 
@@ -643,13 +657,13 @@ def solve_multistart(
         runs.append(r)
 
         if opts.verbose and opts.ms_show_runs and n_starts > 1:
-            tag = (f"Converged in {r.iterations:4d} steps" if r.converged
+            tag = (f"Converged in {r.iterations:4d} steps" if r.residual_converged
                    else f"Not converged ({r.iterations} steps)")
             print(f"  Run {s + 1:3d} | Obj: {r.fval:12.4e} | {tag}")
 
     # ---- global best: converged only, min fval, ties broken by iterations
     fvals = np.array([r.fval for r in runs])
-    conv = np.array([r.converged for r in runs], dtype=bool)
+    conv = np.array([r.residual_converged for r in runs], dtype=bool)
     # Only finite objectives from converged runs are eligible.
     search = np.where(conv & np.isfinite(fvals), fvals, np.inf)
     best_f = float(np.min(search)) if search.size else np.inf
@@ -669,7 +683,7 @@ def solve_multistart(
     return SolveResult(
         theta=np.asarray(theta, float),
         fval=float(fval),
-        converged=converged,
+        residual_converged=converged,
         runs=runs,
         best_run=best_idx,
         elapsed=time.time() - t0,

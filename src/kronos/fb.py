@@ -247,6 +247,18 @@ def solve_fb(problem: Problem, opts: Options, x0: np.ndarray,
         th_final = z[idx_th]
         mu_final = z[idx_mu]
 
+        # Constraint violation of the reduced system: the equality rows, the
+        # dummy row, and any violated inequality. Without this the reported
+        # value stays at its default of infinity.
+        _, _, h_all_f, _, _ = backend.kkt(th_final, np.zeros(red.m))
+        viol = [abs(float(z[0] - _XT))]
+        if n_eq:
+            viol += [abs(float(v)) for v in h_all_f[:n_eq]]
+        if n_in:
+            b_f = -sysm.signs * h_all_f[n_eq:]
+            viol += [float(max(0.0, -bi)) for bi in b_f]   # only violations count
+        max_h = max(viol) if viol else 0.0
+
         # rebuild the full-length point, including reconstructed slacks
         theta_full = np.zeros(problem.n)
         theta_full[sysm.kept] = th_final
@@ -260,7 +272,8 @@ def solve_fb(problem: Problem, opts: Options, x0: np.ndarray,
             theta_full[j] = float(np.sqrt(val)) if val > 0 else 0.0
 
         r = RunResult(theta=theta_full, fval=float(backend.f(th_final)),
-                      converged=converged, iterations=k, max_r=maxr)
+                      residual_converged=converged, iterations=k, max_r=maxr,
+                      max_h=max_h)
         # FB certification: mu >= 0, inequality feasible, complementarity small
         if converged and n_in:
             g_now = hall[n_eq:]
@@ -277,10 +290,10 @@ def solve_fb(problem: Problem, opts: Options, x0: np.ndarray,
         runs.append(r)
 
     fvals = np.array([r.fval for r in runs])
-    conv = np.array([r.converged for r in runs])
+    conv = np.array([r.residual_converged for r in runs])
     search = np.where(conv, fvals, np.inf)
     best = int(np.argmin(search)) if np.isfinite(search).any() else int(np.argmin(fvals))
     return SolveResult(theta=runs[best].theta, fval=float(fvals[best]),
-                       converged=bool(conv[best]), runs=runs, best_run=best,
+                       residual_converged=bool(conv[best]), runs=runs, best_run=best,
                        elapsed=time.time() - t0, solver_used="kronos-fb",
                        n_ineq_rows=n_in)

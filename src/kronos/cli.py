@@ -33,20 +33,11 @@ def _cmd_solve(args):
     if args.step:
         opts = opts.copy(step_method=args.step)
     r = solve(p, opts)
-    K = len(r.runs)
-    print(f"\nproblem   : {p.name}  (n={p.n}, m={p.m})")
-    print(f"objective : {r.fval:.10g}" + (f"   f* = {p.fstar:.10g}" if p.fstar is not None else ""))
-    print(f"converged : {r.n_conv}/{K}")
-    if p.fstar is not None:
-        g = r.global_hits(p.fstar)
-        ratio = f"   ({100 * g / r.n_conv:.1f}% of converged)" if r.n_conv else ""
-        print(f"reached f*: {g}/{K}{ratio}")
+    print()
+    print(r.summary())
     if args.verbose:
-        print(f"residual  : {r.n_residual_conv}/{K} met the residual test "
-              f"({r.n_residual_conv - r.n_conv} of them uncertified)")
-        print(f"solver    : {r.solver_used}")
-    print(f"time      : {r.elapsed:.2f} s total, {r.elapsed / max(K, 1):.3f} s/run")
-    print("x* =", np.array2string(r.theta[:min(10, r.theta.size)], precision=8))
+        print(f"residual-converged : {r.n_residual_conv}/{len(r.runs)}")
+        print(f"solver             : {r.solver_used}")
     if args.plot:
         from .plotting import plot_runs
         fig = plot_runs(r, fstar=p.fstar)

@@ -35,7 +35,7 @@ def solve_cascade(problem: Problem, backend, opts: Options,
 
     runsA = resA.runs
     K = len(runsA)
-    convA = np.array([r.converged for r in runsA], dtype=bool)
+    convA = np.array([r.residual_converged for r in runsA], dtype=bool)
     kktA = np.array([r.kkt_certified for r in runsA], dtype=bool)
 
     needs_fb = ~(convA & kktA)
@@ -70,8 +70,8 @@ def solve_cascade(problem: Problem, backend, opts: Options,
             best_runs.append(a)
             picks.append("A")
             continue
-        score_a = 3 * a.kkt_certified + a.converged
-        score_b = 3 * b.kkt_certified + b.converged
+        score_a = 3 * a.kkt_certified + a.residual_converged
+        score_b = 3 * b.kkt_certified + b.residual_converged
         if score_b > score_a or (score_b == score_a and b.fval < a.fval):
             best_runs.append(b)
             picks.append("FB")
@@ -80,7 +80,7 @@ def solve_cascade(problem: Problem, backend, opts: Options,
             picks.append("A")
 
     fvals = np.array([r.fval for r in best_runs])
-    conv = np.array([r.converged for r in best_runs], dtype=bool)
+    conv = np.array([r.residual_converged for r in best_runs], dtype=bool)
     kkt = np.array([r.kkt_certified for r in best_runs], dtype=bool)
 
     finite = np.isfinite(fvals)
@@ -103,7 +103,7 @@ def solve_cascade(problem: Problem, backend, opts: Options,
     return SolveResult(
         theta=best_runs[best].theta if best_runs else np.zeros(problem.n),
         fval=float(fvals[best]) if fvals.size else np.inf,
-        converged=bool(conv[best]) if conv.size else False,
+        residual_converged=bool(conv[best]) if conv.size else False,
         runs=best_runs, best_run=best, elapsed=time.time() - t0,
         solver_used=f"cascade[A={int(convA.sum())}/{K}, FB picked {picks.count('FB')}]",
         n_ineq_rows=resA.n_ineq_rows, info=info)

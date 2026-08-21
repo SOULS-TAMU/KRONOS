@@ -26,7 +26,8 @@ def _mpl():
 def plot_runs(result, fstar: Optional[float] = None, title: str = ""):
     """Objective value per multistart run, coloured by certification status.
 
-    Green = KKT-certified, amber = converged but not certified, grey = failed.
+    Green marks converged (KKT-certified) runs, amber runs that met the residual
+    test without certification, and grey failed runs.
     """
     plt = _mpl()
     fv = result.all_fvals
@@ -34,7 +35,7 @@ def plot_runs(result, fstar: Optional[float] = None, title: str = ""):
     kkt = result.all_kkt
     idx = np.arange(1, len(fv) + 1)
 
-    colours = np.where(kkt, "#2a9d3f", np.where(cv, "#e8a33d", "#b0b0b0"))
+    colours = np.where(kkt, "#2a9d3f", np.where(cv, "#e8a33d", "#b0b0b0"))  # certified / residual-only / failed
     fig, ax = plt.subplots(figsize=(9, 4.2))
     finite = np.isfinite(fv)
     ax.scatter(idx[finite], fv[finite], c=colours[finite], s=48,

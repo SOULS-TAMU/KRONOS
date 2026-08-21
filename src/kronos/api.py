@@ -70,4 +70,7 @@ def solve(
     result.info.setdefault("n", problem.n)
     result.info.setdefault("m", problem.m)
     result.info.setdefault("has_slack_rows", has_slacks)
+    slack = {sr.slack_var for sr in problem.slack_rows}
+    result.info.setdefault("user_vars", [i for i in range(problem.n) if i not in slack])
+    result.info.setdefault("var_names", list(problem.var_names))
     return result

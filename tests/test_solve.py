@@ -203,13 +203,23 @@ def test_converged_means_certified():
     assert r.n_conv == sum(1 for x in r.runs if x.kkt_certified)
 
 
-def test_summary_reports_certified_and_hides_uncertified_by_default():
+def test_summary_reports_only_the_intended_fields():
     p = load_problem("hs030")
     r = solve(p, Options(multi_start=True, ms_num_starts=5, ms_seed=42))
-    default = r.summary()
-    assert "KKT-certified" in default
-    assert "residual-converged" not in default
-    assert "residual-converged" in r.summary(show_uncertified=True)
+    out = r.summary()
+    for field in ("converged", "reached f*", "objective", "x*", "iterations", "time"):
+        assert field in out
+    # nothing about the internal solver path or the residual-only count
+    assert "cascade" not in out and "residual" not in out
+    # x* lists the problem's variables, not the slack variables
+    lines = out.splitlines()
+    start = next(i for i, l in enumerate(lines) if l.strip().startswith("x*"))
+    end = next(i for i, l in enumerate(lines[start:], start)
+               if l.strip().startswith("iterations"))
+    n_user = len(r.info["user_vars"])
+    assert end - start == min(n_user, 10)
+    names = [r.info["var_names"][i] for i in r.info["user_vars"]]
+    assert names[0] in lines[start]
 
 
 def test_global_lines_appear_only_when_fstar_is_known():
@@ -220,8 +230,11 @@ def test_global_lines_appear_only_when_fstar_is_known():
     r = solve(p, Options(multi_start=True, ms_num_starts=5, ms_seed=42, fstar=0.0))
     with_fstar = r.summary()
     assert "reached f*" in with_fstar
-    assert "f* / converged" in with_fstar
+    assert "f* =" in with_fstar
     assert r.global_hits(0.0) >= 1
+    # supplying it only to summary() works too
+    assert "reached f*" in solve(
+        p, Options(multi_start=True, ms_num_starts=5, ms_seed=42)).summary(fstar=0.0)
 
 
 def test_global_hits_requires_certification():
@@ -229,3 +242,33 @@ def test_global_hits_requires_certification():
     p = load_problem("hs030")
     r = solve(p, Options(multi_start=True, ms_num_starts=10, ms_seed=42))
     assert r.global_hits(p.fstar) <= r.n_conv
+
+
+
+def test_fischer_burmeister_runs_report_a_finite_constraint_violation():
+    """FB-selected runs must carry max_h, not the default of infinity."""
+    p = load_problem("hs034")
+    r = solve(p, Options(multi_start=True, ms_num_starts=25, ms_seed=42))
+    assert r.info.get("n_picked_fb", 0) > 0, "expected the FB path to be exercised"
+    for run in r.runs:
+        assert np.isfinite(run.max_h), f"max_h is {run.max_h}"
+    for run in r.runs:
+        if run.converged:
+            assert run.max_h < 1e-3
+
+
+def test_converged_means_certified_at_every_level():
+    """`converged` must not mean the residual test in one place and
+    certification in another."""
+    p = load_problem("hs071")
+    r = solve(p, Options(multi_start=True, ms_num_starts=25, ms_seed=42))
+
+    assert r.n_conv == sum(1 for x in r.runs if x.converged)
+    assert r.n_conv == sum(1 for x in r.runs if x.kkt_certified)
+    for run in r.runs:
+        assert run.converged == run.kkt_certified
+        assert run.converged == (run.residual_converged and run.dual_feas_strict)
+    if r.best_run is not None:
+        assert r.converged == r.runs[r.best_run].converged
+        assert r.success == r.converged
+    assert r.n_residual_conv >= r.n_conv

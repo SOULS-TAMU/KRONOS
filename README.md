@@ -58,7 +58,7 @@ Verify the installation:
 
 ```python
 import kronos
-print(kronos.__version__, len(kronos.problem_names()))     # 0.3.1 244
+print(kronos.__version__, len(kronos.problem_names()))     # 0.4.0 244
 ```
 
 ## Quick start
@@ -124,12 +124,36 @@ count is available with
 print(r.summary(show_uncertified=True))     # adds a "residual-converged" line
 ```
 
-The two `f*` lines are shown only when a known optimum is available, either
-from a built-in problem or because one was supplied:
+### Supplying a known optimum
+
+If the optimal objective value is known in advance, supply it as `fstar`. The
+report then adds how many runs reached it, and `r.global_hits()` becomes
+available. Without it those lines are omitted, and everything else is unchanged:
+`fstar` is used only for reporting and never influences the solve.
+
+Three equivalent ways:
 
 ```python
-r = solve(p, fstar=17.0140173)              # or Problem.build(..., fstar=...)
+p = Problem.build(..., fstar=17.0140173)    # stored with the problem
+r = solve(p, fstar=17.0140173)              # for one solve
+print(r.summary(fstar=17.0140173))          # for one report
 ```
+
+A run counts as having reached `f*` when it is certified and
+
+```
+|f - f*| <= max(1e-4, 1e-3 * max(1, |f*|))
+```
+
+so the test is absolute for small optima and relative for large ones. Query it
+directly with:
+
+```python
+r.global_hits(17.0140173)      # number of certified runs that reached it
+```
+
+The built-in problems already carry their known optima, so `load_problem`
+supplies `fstar` automatically.
 
 The same quantities are available programmatically:
 
@@ -232,8 +256,8 @@ fig = plot_runs(r, fstar=p.fstar)      # per-run objective, coloured by status
 fig.savefig("runs.png", dpi=150)
 ```
 
-Green marks KKT-certified runs, amber converged but uncertified runs, and grey
-failed runs.
+Green marks converged (KKT-certified) runs, amber runs that met the residual
+test without certification, and grey failed runs.
 
 ## Command line
 
@@ -294,8 +318,9 @@ multiplier handling.
 ## Backends
 
 With `backend="auto"` the solver uses SymPy below 20 variables and CasADi at or
-above that threshold. JAX is available as a third option. All three produce
-identical derivatives, so the choice affects speed only.
+above that threshold. JAX is available as a third option. The backends produce
+mathematically equivalent derivatives; floating-point evaluation differs
+between them, so a run may follow a slightly different trajectory.
 
 ```python
 from kronos import get_backend
