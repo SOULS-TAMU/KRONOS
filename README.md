@@ -57,7 +57,7 @@ Verify the installation:
 
 ```python
 import kronos
-print(kronos.__version__, len(kronos.problem_names()))     # 0.4.0 244
+print(kronos.__version__, len(kronos.problem_names()))     # 0.4.1 244
 ```
 
 ## Quick start
