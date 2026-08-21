@@ -5,6 +5,4 @@ dist/
 *.egg-info/
 .pytest_cache/
 .venv*/
-results/*.csv
-results/*.log
-results/*.png
+results/
