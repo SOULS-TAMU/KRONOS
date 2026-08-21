@@ -198,10 +198,14 @@ class SolveResult:
         if fstar is not None and np.isfinite(fstar):
             g = self.global_hits(fstar)
             L.append(f"  reached f*  : {g}/{K}  ({100 * g / max(K, 1):.1f}%)")
+        L.append(f"  time        : {self.elapsed:.3f} s   "
+                 f"({self.elapsed / max(K, 1):.3f} s/run)")
+
+        # Everything below describes a single run, not the whole multistart.
+        L.append("  ---- best run ----")
         L.append(f"  objective   : {self.fval:.10g}"
                  + (f"      f* = {fstar:.10g}" if fstar is not None and np.isfinite(fstar) else ""))
 
-        # Report the problem's own variables; slack variables are internal.
         x = np.asarray(self.theta, dtype=float)
         idx = self.info.get("user_vars")
         if idx:
@@ -218,8 +222,6 @@ class SolveResult:
             L.append(" " * 16 + f"... {x.size - n_show} more")
         if best is not None:
             L.append(f"  iterations  : {best.iterations}")
-        L.append(f"  time        : {self.elapsed:.3f} s   "
-                 f"({self.elapsed / max(K, 1):.3f} s/run)")
         L.append("=" * w)
         return "\n".join(L)
 

@@ -209,6 +209,12 @@ def test_summary_reports_only_the_intended_fields():
     out = r.summary()
     for field in ("converged", "reached f*", "objective", "x*", "iterations", "time"):
         assert field in out
+    # aggregate figures and single-run figures must be visibly separated
+    assert "best run" in out
+    agg = out[:out.index("best run")]
+    run = out[out.index("best run"):]
+    assert "converged" in agg and "time" in agg
+    assert "objective" in run and "x*" in run and "iterations" in run
     # nothing about the internal solver path or the residual-only count
     assert "cascade" not in out and "residual" not in out
     # x* lists the problem's variables, not the slack variables
