@@ -304,13 +304,34 @@ r = solve(p, opts)
 | `multi_start` | `False` | solve from several starting points |
 | `ms_num_starts`, `ms_seed` | `25`, `42` | number of starting points and the random seed |
 | `use_adam_warmup` | `True` | first-order warm-up before Newton |
-| `adam_mode` | `"C"` | full pipeline per starting point |
+| `adam_mode` | `"C"` | how the warm-up is applied across starting points, see below |
 | `backend` | `"auto"` | SymPy below 20 variables, CasADi at or above |
 | `fstar` | `None` | known optimum, enabling the `reached f*` lines |
 | `max_kkt_kicks` | `5` | retries when a run converges without certification |
 
 When many runs converge without being certified, increasing `max_kkt_kicks`
 often helps.
+
+### `adam_mode`
+
+The solve has three stages: a first-order warm-up, a pre-feasibility pass, and
+the main Newton solve. With `K` starting points, `adam_mode` decides how the
+first two are distributed across them.
+
+| mode | warm-up | pre-feasibility | main solve |
+|---|---|---|---|
+| `"A"` | every starting point | first point only | one call receiving all `K` points |
+| `"B"` | first point only | first point only | one call, which scatters `K` fresh points around it |
+| `"C"` | every starting point | every starting point | one call per starting point |
+
+`"C"` is the default and the most thorough: each starting point goes through
+the whole pipeline independently. `"B"` is the cheapest, but note that it
+scatters its `K-1` remaining points *after* the warm-up, so those never benefit
+from it.
+
+The choice matters on harder problems. On `dixchlng`, for example, `"A"` and
+`"C"` reach the known optimum from all 25 starts while `"B"` reaches it from
+one.
 
 All 58 options are documented in place:
 

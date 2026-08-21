@@ -154,7 +154,7 @@ _GROUPS: list[tuple[str, list[tuple[str, str]]]] = [
     ]),
     ("Warm-up (stage 0) and pre-feasibility (stage 1)", [
         ("use_adam_warmup", "first-order Adam pass before Newton"),
-        ("adam_mode", "'A' warm all starts, 'B' only the first, 'C' full pipeline per start"),
+        ("adam_mode", "how the warm-up is spread over starts: 'A' all, 'B' first only, 'C' full pipeline each"),
         ("adam_iters", "Adam iterations"),
         ("adam_lr", "Adam learning rate"),
         ("adam_rho", "penalty weight on ||h||^2 during warm-up"),
