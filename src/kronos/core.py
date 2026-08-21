@@ -46,8 +46,12 @@ class RunResult:
 
     theta: np.ndarray
     fval: float = np.inf
-    residual_converged: bool = False
-    """The residual test alone: max|r| and max|h| below tolerance."""
+    reformulated_stationary: bool = False
+    """A stationary point of the *reformulated* system: the KKT residual and the
+    constraint violation are below tolerance. Because inequalities are carried
+    as squared slacks, such a point need not be a KKT point of the original
+    problem; that additionally requires the multiplier signs to be correct.
+    See :attr:`converged`."""
     iterations: int = 0
     max_r: float = np.inf
     max_h: float = np.inf
@@ -69,7 +73,7 @@ class RunResult:
     def converged(self) -> bool:
         """Converged means KKT certified: the residual test passed and the
         inequality multipliers have the correct signs."""
-        return bool(self.residual_converged and self.dual_feas_strict)
+        return bool(self.reformulated_stationary and self.dual_feas_strict)
 
     @property
     def kkt_certified(self) -> bool:
@@ -83,8 +87,9 @@ class SolveResult:
 
     theta: np.ndarray
     fval: float
-    residual_converged: bool
-    """Whether the reported run met the residual test."""
+    reformulated_stationary: bool
+    """Whether the reported run is a stationary point of the reformulated
+    system, irrespective of certification."""
     runs: list[RunResult] = field(default_factory=list)
     best_run: Optional[int] = None
     elapsed: float = 0.0
@@ -111,7 +116,7 @@ class SolveResult:
 
     @property
     def all_conv(self) -> np.ndarray:
-        return np.array([r.residual_converged for r in self.runs], dtype=bool)
+        return np.array([r.reformulated_stationary for r in self.runs], dtype=bool)
 
     @property
     def all_kkt(self) -> np.ndarray:
@@ -126,7 +131,7 @@ class SolveResult:
         """Runs that converged and are KKT certified.
 
         The looser count, without the multiplier-sign requirement, is
-        ``n_residual_conv``.
+        ``n_reformulated_stationary``.
         """
         return int(self.all_kkt.sum())
 
@@ -136,8 +141,13 @@ class SolveResult:
         return int(self.all_kkt.sum())
 
     @property
-    def n_residual_conv(self) -> int:
-        """Runs that met the residual test, certified or not."""
+    def n_reformulated_stationary(self) -> int:
+        """Runs that reached a stationary point of the reformulated system.
+
+        Always at least :attr:`n_conv`; the difference is the number of runs
+        whose inequality multipliers came out with the wrong sign, which are
+        not solutions of the original problem.
+        """
         return int(self.all_conv.sum())
 
     @property
@@ -215,7 +225,7 @@ class SolveResult:
 
     def __repr__(self) -> str:
         return (f"SolveResult(fval={self.fval:.8g}, converged={self.converged}, "
-                f"n_conv={self.n_conv}/{len(self.runs)}, n_kkt={self.n_kkt})")
+                f"n_conv={self.n_conv}/{len(self.runs)})")
 
 
 # ======================================================================
@@ -439,7 +449,7 @@ def run_one_start(
 
             sse_best = curr_sse
             p_best = p.copy()
-            res.residual_converged = True
+            res.reformulated_stationary = True
             res.dual_feas = dual_ok
             res.min_lam_ineq = min_lam
 
@@ -657,13 +667,13 @@ def solve_multistart(
         runs.append(r)
 
         if opts.verbose and opts.ms_show_runs and n_starts > 1:
-            tag = (f"Converged in {r.iterations:4d} steps" if r.residual_converged
+            tag = (f"Converged in {r.iterations:4d} steps" if r.reformulated_stationary
                    else f"Not converged ({r.iterations} steps)")
             print(f"  Run {s + 1:3d} | Obj: {r.fval:12.4e} | {tag}")
 
     # ---- global best: converged only, min fval, ties broken by iterations
     fvals = np.array([r.fval for r in runs])
-    conv = np.array([r.residual_converged for r in runs], dtype=bool)
+    conv = np.array([r.reformulated_stationary for r in runs], dtype=bool)
     # Only finite objectives from converged runs are eligible.
     search = np.where(conv & np.isfinite(fvals), fvals, np.inf)
     best_f = float(np.min(search)) if search.size else np.inf
@@ -683,7 +693,7 @@ def solve_multistart(
     return SolveResult(
         theta=np.asarray(theta, float),
         fval=float(fval),
-        residual_converged=converged,
+        reformulated_stationary=converged,
         runs=runs,
         best_run=best_idx,
         elapsed=time.time() - t0,

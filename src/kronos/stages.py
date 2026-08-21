@@ -112,12 +112,12 @@ def solve_stages(
             best = int(np.argmin(masked))
             from .core import RunResult
             runs = [RunResult(theta=X_adam[:, c].copy(), fval=float(fv[c]),
-                              residual_converged=bool(accept[c]), iterations=0,
+                              reformulated_stationary=bool(accept[c]), iterations=0,
                               dual_feas=True, dual_feas_strict=True)
                     for c in range(X_adam.shape[1])]
             info["early_exit_adam"] = True
             return SolveResult(theta=X_adam[:, best].copy(), fval=float(fv[best]),
-                               residual_converged=True, runs=runs, best_run=best,
+                               reformulated_stationary=True, runs=runs, best_run=best,
                                elapsed=time.time() - t_start,
                                solver_used=f"adam-only [{int(accept.sum())}/{len(runs)} cols]",
                                n_ineq_rows=int(problem.ineq_row_mask.sum()), info=info)
@@ -165,13 +165,13 @@ def solve_stages(
                                       error=f"{type(exc).__name__}: {exc}"))
             if opts.verbose and opts.ms_show_runs:
                 last = runs[-1]
-                tag = (f"Converged in {last.iterations:4d} steps" if last.residual_converged
+                tag = (f"Converged in {last.iterations:4d} steps" if last.reformulated_stationary
                        else f"NOT converged ({last.iterations} steps)")
                 print(f"  Run {c + 1:3d} | Obj: {last.fval:14.6e} | {tag}")
 
         # Only finite objectives from converged runs are eligible.
         fvals = np.array([r.fval for r in runs])
-        conv = np.array([r.residual_converged for r in runs], dtype=bool)
+        conv = np.array([r.reformulated_stationary for r in runs], dtype=bool)
         eligible = conv & np.isfinite(fvals)
         if eligible.any():
             search = np.where(eligible, fvals, np.inf)
@@ -186,7 +186,7 @@ def solve_stages(
             theta = runs[best].theta if best is not None else np.zeros(n)
             fval = float(fvals[best]) if best is not None else np.inf
             converged = False
-        out = SolveResult(theta=theta, fval=fval, residual_converged=converged, runs=runs,
+        out = SolveResult(theta=theta, fval=fval, reformulated_stationary=converged, runs=runs,
                           best_run=best, elapsed=time.time() - t_start,
                           solver_used=f"kronos[{backend.name}, mode=C, step={opts.step_method}]",
                           n_ineq_rows=int(problem.ineq_row_mask.sum()), info=info)

@@ -100,29 +100,43 @@ objects. Problems can be written to and read from JSON with `p.save(path)` and
 
 ## Reading the result
 
-`r.summary()` reports the objective, the multistart statistics and the timing:
+`r.summary()` reports the outcome:
 
 ```
-  objective           : 4.093023256
-  known optimum f*    : 4.093   (gap 2.326e-05)
-  ---- multistart ----
-  runs                : 25
-  converged           : 25/25  (100.0%)   [KKT-certified]
-  reached f*          : 25/25  (100.0%)
-  f* / converged      : 100.0%
-  ---- best run ----
-  certified           : True   (min signed multiplier -6.0e-20)
-  iterations          : 11
-  final |KKT residual|: 2.276e-08
+==============================================================
+  KRONOS  |  hs053   n=15  m=13
+==============================================================
+  converged   : 25/25  (100.0%)
+  reached f*  : 25/25  (100.0%)
+  objective   : 4.093023256      f* = 4.093
+  x*          : theta1     = -0.7674418605
+                theta2     = 0.2558139535
+                theta3     = 0.6279069767
+                theta4     = -0.1162790698
+                theta5     = 0.2558139535
+  iterations  : 3
+  time        : 0.659 s   (0.026 s/run)
+==============================================================
 ```
 
-A run counts as converged only if it is KKT certified: the residual test is
-satisfied and the inequality multipliers have the correct signs. The looser
-count is available with
+`x*` lists the problem's own variables; the slack variables introduced for the
+inequalities and bounds are internal and not shown.
+
+**Converged means KKT certified**: the residual test is satisfied *and* the
+inequality multipliers have the correct signs. Because inequalities are carried
+as squared slacks, a run can drive the residual to zero and still end with a
+wrong-signed multiplier. Such a point is stationary for the reformulated system
+but is not a KKT point of the original problem, and is not counted as
+converged. That looser count is available separately:
 
 ```python
-print(r.summary(show_uncertified=True))     # adds a "residual-converged" line
+r.n_conv                        # converged, i.e. KKT certified
+r.n_reformulated_stationary     # stationary for the reformulated system
 ```
+
+The report is plain ASCII with no colour codes or terminal control characters,
+so it appears identically in a terminal, in a Jupyter or VS Code notebook, and
+in a redirected file. Lines are at most 62 characters.
 
 ### Supplying a known optimum
 
@@ -166,8 +180,8 @@ The same quantities are available programmatically:
 | `r.runs` | one `RunResult` per multistart run |
 | `r.all_fvals`, `r.all_conv`, `r.all_kkt` | per-run arrays |
 
-Each `RunResult` provides `converged`, `kkt_certified`, `min_lam_strict`,
-`iterations`, `max_r` and `max_h`.
+Each `RunResult` provides `converged`, `reformulated_stationary`,
+`min_lam_strict`, `iterations`, `max_r` and `max_h`.
 
 Second-order information is computed but not printed. Use `r.n_local` for the
 number of runs proven to be strict local minima, and `sosc_pass`,

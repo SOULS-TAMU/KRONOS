@@ -36,8 +36,8 @@ def _cmd_solve(args):
     print()
     print(r.summary())
     if args.verbose:
-        print(f"residual-converged : {r.n_residual_conv}/{len(r.runs)}")
-        print(f"solver             : {r.solver_used}")
+        print(f"reformulated stationary : {r.n_reformulated_stationary}/{len(r.runs)}")
+        print(f"solver                  : {r.solver_used}")
     if args.plot:
         from .plotting import plot_runs
         fig = plot_runs(r, fstar=p.fstar)

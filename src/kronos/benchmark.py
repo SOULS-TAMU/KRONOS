@@ -34,7 +34,7 @@ class Metrics:
     m: int
     K: int
     n_conv: int
-    n_residual_conv: int
+    n_reformulated_stationary: int
     n_kkt: int
     n_global: int
     n_kkt_global: int
@@ -108,7 +108,7 @@ def compute_metrics(problem: Problem, result: SolveResult, K: int,
     measured = result.all_sosc_measured
 
     n_conv, n_kkt = int(kkt.sum()), int(kkt.sum())   # "converged" == certified
-    n_residual_conv = int(cv.sum())
+    n_reformulated_stationary = int(cv.sum())
     n_local = int((kkt & sosc).sum())
     n_sosc_unknown = int((kkt & ~measured).sum())
     n_stationary = n_kkt - n_local - n_sosc_unknown
@@ -131,7 +131,7 @@ def compute_metrics(problem: Problem, result: SolveResult, K: int,
 
     return Metrics(
         problem=problem.name, n=problem.n, m=problem.m, K=K,
-        n_conv=n_conv, n_residual_conv=n_residual_conv, n_kkt=n_kkt, n_global=n_global, n_kkt_global=n_kkt_global,
+        n_conv=n_conv, n_reformulated_stationary=n_reformulated_stationary, n_kkt=n_kkt, n_global=n_global, n_kkt_global=n_kkt_global,
         n_local=n_local, n_stationary=n_stationary, Lbar=Lbar,
         best_fval=float(result.fval), fstar=fstar,
         mean_time=elapsed / max(K, 1), total_time=elapsed, backend=backend_name,
@@ -152,7 +152,7 @@ def run_problem(name: str | Problem, K: int = 25, backend: Optional[str] = None,
         return compute_metrics(problem, result, K, time.time() - t0, bk.name)
     except Exception as exc:                       # keep the sweep going
         return Metrics(problem=problem.name, n=problem.n, m=problem.m, K=K,
-                       n_conv=0, n_residual_conv=0, n_kkt=0, n_global=0, n_kkt_global=0, n_local=0,
+                       n_conv=0, n_reformulated_stationary=0, n_kkt=0, n_global=0, n_kkt_global=0, n_local=0,
                        n_stationary=0, Lbar=float("nan"), best_fval=float("nan"),
                        fstar=problem.fstar, mean_time=float("nan"),
                        total_time=time.time() - t0, backend=backend or "auto",

@@ -272,7 +272,7 @@ def solve_fb(problem: Problem, opts: Options, x0: np.ndarray,
             theta_full[j] = float(np.sqrt(val)) if val > 0 else 0.0
 
         r = RunResult(theta=theta_full, fval=float(backend.f(th_final)),
-                      residual_converged=converged, iterations=k, max_r=maxr,
+                      reformulated_stationary=converged, iterations=k, max_r=maxr,
                       max_h=max_h)
         # FB certification: mu >= 0, inequality feasible, complementarity small
         if converged and n_in:
@@ -290,10 +290,10 @@ def solve_fb(problem: Problem, opts: Options, x0: np.ndarray,
         runs.append(r)
 
     fvals = np.array([r.fval for r in runs])
-    conv = np.array([r.residual_converged for r in runs])
+    conv = np.array([r.reformulated_stationary for r in runs])
     search = np.where(conv, fvals, np.inf)
     best = int(np.argmin(search)) if np.isfinite(search).any() else int(np.argmin(fvals))
     return SolveResult(theta=runs[best].theta, fval=float(fvals[best]),
-                       residual_converged=bool(conv[best]), runs=runs, best_run=best,
+                       reformulated_stationary=bool(conv[best]), runs=runs, best_run=best,
                        elapsed=time.time() - t0, solver_used="kronos-fb",
                        n_ineq_rows=n_in)

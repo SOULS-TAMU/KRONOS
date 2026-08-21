@@ -191,7 +191,7 @@ def test_reaching_the_optimum_and_verifying_it_are_different_questions():
 
 
 def test_converged_means_certified():
-    """n_conv counts certified runs; the looser count is n_residual_conv."""
+    """n_conv counts certified runs; the looser count is n_reformulated_stationary."""
     p = Problem.build("hs71", ["x1", "x2", "x3", "x4"],
                       objective="x1*x4*(x1 + x2 + x3) + x3",
                       equalities=["x1**2 + x2**2 + x3**2 + x4**2 - 40"],
@@ -199,7 +199,7 @@ def test_converged_means_certified():
                       lb=[1, 1, 1, 1], ub=[5, 5, 5, 5], x0=[1, 5, 5, 1])
     r = solve(p, Options(multi_start=True, ms_num_starts=10, ms_seed=42, maxIter=1500))
     assert r.n_conv == r.n_kkt == int(r.all_kkt.sum())
-    assert r.n_residual_conv >= r.n_conv
+    assert r.n_reformulated_stationary >= r.n_conv
     assert r.n_conv == sum(1 for x in r.runs if x.kkt_certified)
 
 
@@ -267,8 +267,8 @@ def test_converged_means_certified_at_every_level():
     assert r.n_conv == sum(1 for x in r.runs if x.kkt_certified)
     for run in r.runs:
         assert run.converged == run.kkt_certified
-        assert run.converged == (run.residual_converged and run.dual_feas_strict)
+        assert run.converged == (run.reformulated_stationary and run.dual_feas_strict)
     if r.best_run is not None:
         assert r.converged == r.runs[r.best_run].converged
         assert r.success == r.converged
-    assert r.n_residual_conv >= r.n_conv
+    assert r.n_reformulated_stationary >= r.n_conv
