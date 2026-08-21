@@ -13,8 +13,7 @@ $$
 \end{aligned}
 $$
 
-by forming the full KKT system and driving its residual to zero with Newton's
-method, taking the minimum-norm least-squares solution of the KKT linear system
+by forming the full KKT system and driving its residual to zero iteratively, taking the minimum-norm least-squares solution of the KKT linear system
 as the step. Inequalities and variable bounds are converted to equalities using
 squared slack variables.
 
