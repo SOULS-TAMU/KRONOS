@@ -57,7 +57,7 @@ Verify the installation:
 
 ```python
 import kronos
-print(kronos.__version__, len(kronos.problem_names()))     # 0.4.2 244
+print(kronos.__version__, len(kronos.problem_names()))     # 0.4.3 244
 ```
 
 ## Quick start
@@ -190,9 +190,55 @@ The same quantities are available programmatically:
 Each `RunResult` provides `converged`, `reformulated_stationary`,
 `min_lam_strict`, `iterations`, `max_r` and `max_h`.
 
-Second-order information is computed but not printed. Use `r.n_local` for the
-number of runs proven to be strict local minima, and `sosc_pass`,
-`sosc_measured` and `lam_min_red` on individual runs.
+### Strict local minima
+
+A certified KKT point is not necessarily a minimum; it can be a maximum or a
+saddle. The second-order sufficient condition separates them, and is checked
+automatically. To count how many runs are proven minima:
+
+```python
+r = solve(p, multi_start=True, ms_num_starts=25)
+print(r.n_local)          # runs proven to be strict local minima
+```
+
+The gap between `n_conv` and `n_local` splits two ways:
+
+```python
+print(f"converged {r.n_conv}, minima {r.n_local}, "
+      f"failed SOSC {r.n_stationary}, untested {r.n_sosc_unmeasured}")
+```
+
+| attribute | meaning |
+|---|---|
+| `r.n_local` | certified **and** second-order test passed |
+| `r.n_stationary` | certified, test ran, point is not a minimum |
+| `r.n_sosc_unmeasured` | certified, test not performed |
+
+Those three always sum to `r.n_conv`. Runs solved by the Fischer-Burmeister
+formulation fall into the third category, because that path does not form a
+reduced Hessian; not measured is not the same as failed.
+
+The distinction is not academic:
+
+| problem | converged | strict local minima |
+|---|---|---|
+| `hs053` | 25/25 | 25/25 |
+| `hs071` | 17/25 | 10/25 |
+| `a01_beale` | 23/25 | 4/25 |
+
+On `a01_beale`, 23 runs reach certified KKT points but only 4 are minima.
+
+Per run, the same information is available as `sosc_pass`, `sosc_measured` and
+`lam_min_red`, the last being the smallest eigenvalue of the Hessian of the
+Lagrangian restricted to the null space of the active constraint Jacobian. A
+positive value means a strict local minimum:
+
+```python
+b = r.runs[r.best_run]
+b.sosc_pass, b.sosc_measured, b.lam_min_red
+```
+
+`check_sosc=False` skips the test; `sosc_tol` sets the eigenvalue threshold.
 
 ## Built-in problems
 
