@@ -1,14 +1,15 @@
 [build-system]
-requires = ["setuptools>=68", "wheel"]
+requires = ["setuptools>=77", "wheel"]
 build-backend = "setuptools.build_meta"
 
 [project]
 name = "kronos-v1"
-version = "0.4.7"
+version = "0.4.8"
 description = "KKT-certified nonlinear programming by minimum-norm least-square steps"
 readme = "README.md"
 requires-python = ">=3.9"
-license = { text = "MIT" }
+license = "MIT"
+license-files = ["LICENSE"]
 authors = [
   { name = "M G Toufik Ahmed" },
   { name = "M. M. Faruque Hasan" },
@@ -17,7 +18,6 @@ keywords = ["optimization", "nonlinear programming", "NLP", "KKT", "Newton", "le
 classifiers = [
   "Development Status :: 4 - Beta",
   "Intended Audience :: Science/Research",
-  "License :: OSI Approved :: MIT License",
   "Programming Language :: Python :: 3",
   "Topic :: Scientific/Engineering :: Mathematics",
 ]
