@@ -25,7 +25,7 @@ The method is described in KRONOS: An algorithm for solving ill-conditioned nonl
 ## Install
 
 ```bash
-pip install https://github.com/toufik3078/test_kronos/archive/refs/heads/main.zip
+pip install https://github.com/SOULS-TAMU/KRONOS/archive/refs/heads/main.zip
 ```
 
 This requires no `git` and no manual download. It installs `numpy`, `scipy`,
@@ -34,21 +34,21 @@ This requires no `git` and no manual download. It installs `numpy`, `scipy`,
 If `git` is available:
 
 ```bash
-pip install git+https://github.com/toufik3078/test_kronos.git
+pip install git+https://github.com/SOULS-TAMU/KRONOS.git
 ```
 
 Optional extras add matplotlib for figures, or JAX as a third backend:
 
 ```bash
-pip install "kronos[plot] @ https://github.com/toufik3078/test_kronos/archive/refs/heads/main.zip"
-pip install "kronos[all]  @ https://github.com/toufik3078/test_kronos/archive/refs/heads/main.zip"
+pip install "kronos[plot] @ https://github.com/SOULS-TAMU/KRONOS/archive/refs/heads/main.zip"
+pip install "kronos[all]  @ https://github.com/SOULS-TAMU/KRONOS/archive/refs/heads/main.zip"
 ```
 
 For development:
 
 ```bash
-git clone https://github.com/toufik3078/test_kronos.git
-cd test_kronos
+git clone https://github.com/SOULS-TAMU/KRONOS.git
+cd KRONOS
 pip install -e ".[dev]"
 pytest -q
 ```
@@ -57,7 +57,7 @@ Verify the installation:
 
 ```python
 import kronos
-print(kronos.__version__, len(kronos.problem_names()))     # 0.4.4 244
+print(kronos.__version__, len(kronos.problem_names()))     # 0.4.5 244
 ```
 
 ## Quick start
