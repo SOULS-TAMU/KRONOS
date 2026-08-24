@@ -145,37 +145,6 @@ The report is plain ASCII with no colour codes or terminal control characters,
 so it appears identically in a terminal, in a Jupyter or VS Code notebook, and
 in a redirected file. Lines are at most 62 characters.
 
-### Supplying a known optimum
-
-If the optimal objective value is known in advance, supply it as `fstar`. The
-report then adds how many runs reached it, and `r.global_hits()` becomes
-available. Without it those lines are omitted, and everything else is unchanged:
-`fstar` is used only for reporting and never influences the solve.
-
-Three equivalent ways:
-
-```python
-p = Problem.build(..., fstar=17.0140173)    # stored with the problem
-r = solve(p, fstar=17.0140173)              # for one solve
-print(r.summary(fstar=17.0140173))          # for one report
-```
-
-A run counts as having reached `f*` when it is certified and
-
-```
-|f - f*| <= max(1e-4, 1e-3 * max(1, |f*|))
-```
-
-so the test is absolute for small optima and relative for large ones. Query it
-directly with:
-
-```python
-r.global_hits(17.0140173)      # number of certified runs that reached it
-```
-
-The built-in problems already carry their known optima, so `load_problem`
-supplies `fstar` automatically.
-
 The same quantities are available programmatically:
 
 | attribute | meaning |
@@ -183,7 +152,6 @@ The same quantities are available programmatically:
 | `r.fval`, `r.theta` | best objective and the corresponding point |
 | `r.n_conv` | converged and certified runs (`r.n_kkt` is an alias) |
 | `r.n_residual_conv` | runs satisfying the residual test, certified or not |
-| `r.global_hits(fstar)` | certified runs that reached a known optimum |
 | `r.runs` | one `RunResult` per multistart run |
 | `r.all_fvals`, `r.all_conv`, `r.all_kkt` | per-run arrays |
 
