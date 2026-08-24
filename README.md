@@ -25,23 +25,23 @@ The method is described in KRONOS: An algorithm for solving ill-conditioned nonl
 ## Install
 
 ```bash
-pip install https://github.com/SOULS-TAMU/KRONOS/archive/refs/heads/main.zip
+pip install kronos-v1
 ```
 
-This requires no `git` and no manual download. It installs `numpy`, `scipy`,
-`sympy` and `casadi`.
-
-If `git` is available:
-
-```bash
-pip install git+https://github.com/SOULS-TAMU/KRONOS.git
-```
+The package imports as `kronos`. It requires Python 3.9 or later and installs
+`numpy`, `scipy`, `sympy` and `casadi`.
 
 Optional extras add matplotlib for figures, or JAX as a third backend:
 
 ```bash
-pip install "kronos-v1[plot] @ https://github.com/SOULS-TAMU/KRONOS/archive/refs/heads/main.zip"
-pip install "kronos-v1[all]  @ https://github.com/SOULS-TAMU/KRONOS/archive/refs/heads/main.zip"
+pip install "kronos-v1[plot]"
+pip install "kronos-v1[all]"
+```
+
+To install the current state of the main branch instead of the last release:
+
+```bash
+pip install git+https://github.com/SOULS-TAMU/KRONOS.git
 ```
 
 For development:
@@ -57,7 +57,7 @@ Verify the installation:
 
 ```python
 import kronos
-print(kronos.__version__, len(kronos.problem_names()))     # 0.4.6 244
+print(kronos.__version__, len(kronos.problem_names()))     # 0.4.7 244
 ```
 
 ## Quick start
