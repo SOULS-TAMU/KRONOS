@@ -305,3 +305,20 @@ def test_best_run_status_distinguishes_the_three_outcomes():
               Options(multi_start=True, ms_num_starts=3, ms_seed=42, maxIter=50))
     if r.n_conv == 0 and not r.runs[r.best_run].reformulated_stationary:
         assert "NOT CONVERGED" in r.summary()
+
+
+def test_summary_is_a_string_and_renders_when_echoed():
+    """``summary()`` stays a ``str`` but displays formatted at a prompt.
+
+    ``print(r.summary())`` is the documented form and must keep working; the
+    repr matters because that is what a REPL and a notebook cell display.
+    """
+    res = solve(load_problem("hs071"), multi_start=True, ms_num_starts=3,
+                ms_seed=42)
+    text = res.summary()
+    assert isinstance(text, str)
+    assert text.splitlines()[0].startswith("=")
+    assert "KRONOS" in text
+    # echoing must show the report, not a quoted one-line escape sequence
+    assert repr(text) == str(text)
+    assert "\\n" not in repr(text)

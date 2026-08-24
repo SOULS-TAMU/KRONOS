@@ -81,6 +81,20 @@ class RunResult:
         return self.converged
 
 
+class _Report(str):
+    """The text of a report.
+
+    A plain ``str``, so ``print(r.summary())`` and ``open(...).write(...)``
+    behave as usual.  Echoing it at a prompt or as the last line of a notebook
+    cell shows the formatted report rather than a quoted one-line repr.
+    """
+
+    __slots__ = ()
+
+    def __repr__(self) -> str:
+        return str(self)
+
+
 @dataclass
 class SolveResult:
     """Outcome of a multistart solve."""
@@ -178,7 +192,7 @@ class SolveResult:
         tol = max(1e-4, 1e-3 * max(1.0, abs(fstar)))
         return int((self.all_kkt & (np.abs(self.all_fvals - fstar) <= tol)).sum())
 
-    def summary(self, fstar: Optional[float] = None, max_show: int = 10) -> str:
+    def summary(self, fstar: Optional[float] = None, max_show: int = 10) -> "_Report":
         """A report of the solve.
 
         Converged counts KKT-certified runs. The ``reached f*`` line appears
@@ -233,7 +247,7 @@ class SolveResult:
         if best is not None:
             L.append(f"  iterations  : {best.iterations}")
         L.append("=" * w)
-        return "\n".join(L)
+        return _Report("\n".join(L))
 
     def __repr__(self) -> str:
         return (f"SolveResult(fval={self.fval:.8g}, converged={self.converged}, "
