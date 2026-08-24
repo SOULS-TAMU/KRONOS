@@ -1,7 +1,7 @@
 """Result visualisation.
 
 All functions return a matplotlib ``Figure`` and do not call ``show()``.
-``matplotlib`` is an optional dependency (``pip install kronos[plot]``).
+``matplotlib`` is an optional dependency (``pip install kronos-v1[plot]``).
 """
 
 from __future__ import annotations
@@ -19,7 +19,7 @@ def _mpl():
         return plt
     except ImportError as exc:                    # pragma: no cover
         raise ImportError(
-            "plotting needs matplotlib -- install with:  pip install kronos[plot]"
+            "plotting needs matplotlib -- install with:  pip install kronos-v1[plot]"
         ) from exc
 
 

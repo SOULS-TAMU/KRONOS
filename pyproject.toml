@@ -3,7 +3,7 @@ requires = ["setuptools>=68", "wheel"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "kronos"
+name = "kronos-v1"
 version = "0.4.6"
 description = "KKT-certified nonlinear programming by minimum-norm least-square steps"
 readme = "README.md"

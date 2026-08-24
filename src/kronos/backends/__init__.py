@@ -41,7 +41,7 @@ def get_backend(problem, name: str = "auto", switch_n: int = 20, **kwargs):
                 f"{problem.name!r} has {problem.n} variables, which routes to the "
                 f"CasADi backend, but CasADi is not installed - falling back to "
                 f"SymPy, which is far slower at this size. "
-                f"Install it with:  pip install \"kronos[casadi]\"",
+                f"Install it with:  pip install casadi",
                 RuntimeWarning, stacklevel=2)
             name = "sympy"
 

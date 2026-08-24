@@ -40,8 +40,8 @@ pip install git+https://github.com/SOULS-TAMU/KRONOS.git
 Optional extras add matplotlib for figures, or JAX as a third backend:
 
 ```bash
-pip install "kronos[plot] @ https://github.com/SOULS-TAMU/KRONOS/archive/refs/heads/main.zip"
-pip install "kronos[all]  @ https://github.com/SOULS-TAMU/KRONOS/archive/refs/heads/main.zip"
+pip install "kronos-v1[plot] @ https://github.com/SOULS-TAMU/KRONOS/archive/refs/heads/main.zip"
+pip install "kronos-v1[all]  @ https://github.com/SOULS-TAMU/KRONOS/archive/refs/heads/main.zip"
 ```
 
 For development:
